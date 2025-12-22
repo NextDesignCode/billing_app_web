@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Facturation{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-4xl font-bold text-gray-900 mb-2">Bienvenue, {{ user.first_name|default:user.username }}! 👋</h1>
+    <p class="text-gray-600">Vue d'ensemble de votre activité</p>
+</div>
+
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Invoiced -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Total Facturé</p>
+            <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_invoiced }} €</p>
+        </div>
+    </div>
+
+    <!-- Total Paid -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Total Payé</p>
+            <p class="text-3xl font-bold text-green-600 mt-2">{{ total_paid }} €</p>
+        </div>
+    </div>
+
+    <!-- Pending Invoices -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Factures en Attente</p>
+            <p class="text-3xl font-bold text-yellow-600 mt-2">{{ pending_count }}</p>
+        </div>
+    </div>
+
+    <!-- Overdue Invoices -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Factures en Retard</p>
+            <p class="text-3xl font-bold text-red-600 mt-2">{{ overdue_count }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Content -->
+<div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-2xl font-bold text-gray-900 mb-4">📊 Vue d'ensemble</h2>
+    <p class="text-gray-600">Bienvenue dans votre système de gestion des factures.</p>
+    <p class="text-gray-600 mt-2">Utilisez le menu pour accéder à vos factures, clients, produits et bien plus!</p>
+</div>
+{% endblock %}

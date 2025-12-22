@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Créer Proforma - Facturation{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">🆕 Créer une Proforma</h1>
+</div>
+
+<div class="bg-white rounded-lg shadow-lg p-8 max-w-2xl">
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <div>
+            <label for="client" class="block text-sm font-semibold text-gray-700 mb-2">Client *</label>
+            <select name="client" id="client" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="">-- Sélectionner un client --</option>
+                {% for client in clients %}
+                    <option value="{{ client.id }}">{{ client.name }} ({{ client.email }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label for="proforma_date" class="block text-sm font-semibold text-gray-700 mb-2">Date de Proforma *</label>
+                <input type="date" name="proforma_date" id="proforma_date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+                <label for="validity_date" class="block text-sm font-semibold text-gray-700 mb-2">Validité jusqu'au *</label>
+                <input type="date" name="validity_date" id="validity_date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+        </div>
+
+        <div>
+            <label for="description" class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+            <textarea name="description" id="description" rows="4" placeholder="Détails supplémentaires de la proforma..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+        </div>
+
+        <div class="flex gap-4 pt-6">
+            <button type="submit" class="btn-success py-3 px-6 text-lg">
+                <i class="fas fa-file-invoice"></i> Créer la Proforma
+            </button>
+            <a href="{% url 'core:proforma_list' %}" class="btn-outline py-3 px-6 text-lg">
+                <i class="fas fa-arrow-left"></i> Annuler
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

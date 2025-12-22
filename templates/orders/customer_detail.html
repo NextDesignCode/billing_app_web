@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ order.order_number }} - Commande Client{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900">📋 Commande #{{ order.order_number }}</h1>
+            <p class="text-gray-600 mt-2">Client: <strong>{{ order.client.name }}</strong></p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'core:customer_order_list' %}" class="btn-outline py-3 px-6">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Order Info Cards -->
+<div class="grid grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <p class="text-gray-600 text-sm">Date Commande</p>
+        <p class="text-2xl font-bold text-gray-900">{{ order.order_date|date:"d/m/Y" }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <p class="text-gray-600 text-sm">Date Livraison</p>
+        <p class="text-2xl font-bold text-gray-900">
+            {% if order.delivery_date %}
+                {{ order.delivery_date|date:"d/m/Y" }}
+            {% else %}
+                <span class="text-gray-400 text-sm">À définir</span>
+            {% endif %}
+        </p>
+    </div>
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <p class="text-gray-600 text-sm">Montant Total</p>
+        <p class="text-2xl font-bold text-green-600">{{ order.total|floatformat:2 }} €</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <p class="text-gray-600 text-sm">Statut</p>
+        <div class="mt-2">
+            {% if order.status == 'draft' %}
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-800">
+                    <i class="fas fa-file"></i> Brouillon
+                </span>
+            {% elif order.status == 'pending' %}
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800">
+                    <i class="fas fa-hourglass-start"></i> En attente
+                </span>
+            {% elif order.status == 'confirmed' %}
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                    <i class="fas fa-check-circle"></i> Confirmée
+                </span>
+            {% elif order.status == 'partial' %}
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800">
+                    <i class="fas fa-dolly"></i> Partiellement livrée
+                </span>
+            {% elif order.status == 'completed' %}
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
+                    <i class="fas fa-check"></i> Complétée
+                </span>
+            {% elif order.status == 'cancelled' %}
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">
+                    <i class="fas fa-times-circle"></i> Annulée
+                </span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Client Info -->
+<div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">👤 Informations Client</h2>
+    <div class="grid grid-cols-2 gap-6">
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Nom</p>
+            <p class="text-gray-900">{{ order.client.name }}</p>
+        </div>
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Email</p>
+            <p class="text-gray-900">{{ order.client.email }}</p>
+        </div>
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Téléphone</p>
+            <p class="text-gray-900">{{ order.client.phone }}</p>
+        </div>
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Adresse</p>
+            <p class="text-gray-900">{{ order.client.address }}, {{ order.client.postal_code }} {{ order.client.city }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Order Items -->
+<div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+    <div class="p-6 border-b border-gray-200">
+        <h2 class="text-2xl font-bold text-gray-900">📦 Articles de la Commande</h2>
+    </div>
+    {% if order.items.all %}
+        <table class="w-full">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="text-left py-4 px-6">Description</th>
+                    <th class="text-center py-4 px-6">Quantité</th>
+                    <th class="text-right py-4 px-6">Prix Unitaire</th>
+                    <th class="text-right py-4 px-6">TVA</th>
+                    <th class="text-right py-4 px-6">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="py-4 px-6">{{ item.description }}</td>
+                    <td class="py-4 px-6 text-center">{{ item.quantity|floatformat:2 }}</td>
+                    <td class="py-4 px-6 text-right">{{ item.unit_price|floatformat:2 }} €</td>
+                    <td class="py-4 px-6 text-right">{{ item.tax_rate|floatformat:0 }}% ({{ item.tax|floatformat:2 }} €)</td>
+                    <td class="py-4 px-6 text-right font-bold">{{ item.total|floatformat:2 }} €</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Totals -->
+        <div class="bg-gray-50 p-6 flex justify-end">
+            <div class="w-full max-w-sm">
+                <div class="flex justify-between py-2 border-b-2 border-gray-300">
+                    <span class="font-semibold">Sous-total:</span>
+                    <span>{{ order.subtotal|floatformat:2 }} €</span>
+                </div>
+                <div class="flex justify-between py-2 border-b-2 border-gray-300">
+                    <span class="font-semibold">TVA:</span>
+                    <span>{{ order.tax_amount|floatformat:2 }} €</span>
+                </div>
+                <div class="flex justify-between py-3 bg-blue-50 px-3 rounded-lg">
+                    <span class="font-bold text-lg">TOTAL:</span>
+                    <span class="font-bold text-lg text-blue-600">{{ order.total|floatformat:2 }} €</span>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="p-8 text-center text-gray-500">
+            <p>Aucun article dans cette commande</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Notes -->
+{% if order.notes %}
+<div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-4">📝 Notes</h2>
+    <p class="text-gray-700 whitespace-pre-wrap">{{ order.notes }}</p>
+</div>
+{% endif %}
+
+<!-- Actions -->
+<div class="flex gap-4">
+    <a href="{% url 'core:customer_order_list' %}" class="btn-outline py-3 px-6 text-lg">
+        <i class="fas fa-arrow-left"></i> Retour à la Liste
+    </a>
+</div>
+{% endblock %}

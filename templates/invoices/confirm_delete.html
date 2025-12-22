@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer Facture - Facturation{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-red-600">⚠️ Confirmer la Suppression</h1>
+</div>
+
+<div class="bg-white rounded-lg shadow-lg p-8 max-w-2xl">
+    <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+        <p class="text-lg text-gray-800">Êtes-vous sûr de vouloir supprimer cette facture?</p>
+        <p class="text-sm text-gray-600 mt-2">Cette action est irréversible!</p>
+    </div>
+
+    <div class="bg-gray-50 p-4 rounded-lg mb-6">
+        <p class="text-sm"><strong>Facture:</strong> {{ invoice.invoice_number }}</p>
+        <p class="text-sm"><strong>Client:</strong> {{ invoice.client.name }}</p>
+        <p class="text-sm"><strong>Montant:</strong> {{ invoice.total }} €</p>
+        <p class="text-sm"><strong>Statut:</strong> {{ invoice.get_status_display }}</p>
+    </div>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        <div class="flex gap-4">
+            <button type="submit" class="btn-danger py-3 px-6 text-lg">
+                <i class="fas fa-trash"></i> Supprimer Définitivement
+            </button>
+            <a href="{% url 'core:invoice_detail' invoice.pk %}" class="btn-outline py-3 px-6 text-lg">
+                <i class="fas fa-arrow-left"></i> Annuler
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

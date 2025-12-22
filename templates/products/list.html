@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Produits - Facturation{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <h1 class="text-4xl font-bold text-gray-900">📦 Produits</h1>
+        <a href="{% url 'core:product_create' %}" class="btn-success py-3 px-6 text-lg">
+            <i class="fas fa-plus"></i> Nouveau Produit
+        </a>
+    </div>
+</div>
+
+<!-- Search -->
+<div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+    <form method="get" class="flex gap-4">
+        <input type="text" name="search" placeholder="Chercher par nom, SKU..." value="{{ request.GET.search }}" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        <button type="submit" class="btn-primary py-2 px-4">
+            <i class="fas fa-search"></i> Rechercher
+        </button>
+    </form>
+</div>
+
+<!-- Products Table -->
+<div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    {% if products %}
+        <table class="w-full">
+            <thead class="bg-gray-100 border-b-2 border-gray-300">
+                <tr>
+                    <th class="text-left py-4 px-6">Nom</th>
+                    <th class="text-left py-4 px-6">SKU</th>
+                    <th class="text-left py-4 px-6">Catégorie</th>
+                    <th class="text-right py-4 px-6">Prix</th>
+                    <th class="text-center py-4 px-6">Stock</th>
+                    <th class="text-center py-4 px-6">Statut</th>
+                    <th class="text-center py-4 px-6">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr class="border-b hover:bg-gray-50 transition">
+                    <td class="py-4 px-6">
+                        <strong>{{ product.name }}</strong>
+                    </td>
+                    <td class="py-4 px-6 font-mono text-sm text-gray-600">{{ product.sku }}</td>
+                    <td class="py-4 px-6">{{ product.category }}</td>
+                    <td class="py-4 px-6 text-right font-bold">{{ product.unit_price|floatformat:2 }} €</td>
+                    <td class="py-4 px-6 text-center">
+                        <span class="font-bold {% if product.quantity_in_stock > product.reorder_level %}text-green-600{% else %}text-red-600{% endif %}">
+                            {{ product.quantity_in_stock }}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        {% if product.quantity_in_stock <= product.reorder_level %}
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">
+                                <i class="fas fa-exclamation-triangle"></i> Rupture
+                            </span>
+                        {% else %}
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle"></i> En stock
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        <div class="flex gap-2 justify-center">
+                            <a href="{% url 'core:product_edit' product.pk %}" class="text-blue-600 hover:text-blue-900" title="Éditer">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'core:product_delete' product.pk %}" class="text-red-600 hover:text-red-900" title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="p-8 text-center">
+            <i class="fas fa-box text-5xl text-gray-300 mb-4"></i>
+            <p class="text-gray-600 text-lg">Aucun produit trouvé</p>
+            <a href="{% url 'core:product_create' %}" class="btn-success py-2 px-4 inline-block mt-4">
+                <i class="fas fa-plus"></i> Créer un nouveau produit
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajouter Article - Facturation{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">➕ Ajouter un Article à la Facture</h1>
+    <p class="text-gray-600 mt-2">Facture: {{ invoice.invoice_number }}</p>
+</div>
+
+<div class="bg-white rounded-lg shadow-lg p-8 max-w-2xl">
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <div>
+            <label for="product" class="block text-sm font-semibold text-gray-700 mb-2">Produit *</label>
+            <select name="product" id="product" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="updatePrice()">
+                <option value="">-- Sélectionner un produit --</option>
+                {% for product in products %}
+                    <option value="{{ product.id }}" data-price="{{ product.unit_price }}">
+                        {{ product.name }} ({{ product.sku }}) - {{ product.unit_price }} €
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label for="quantity" class="block text-sm font-semibold text-gray-700 mb-2">Quantité *</label>
+                <input type="number" name="quantity" id="quantity" value="1" min="1" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+                <label for="unit_price" class="block text-sm font-semibold text-gray-700 mb-2">Prix Unitaire</label>
+                <input type="number" name="unit_price" id="unit_price" step="0.01" placeholder="Automatique" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+        </div>
+
+        <div class="flex gap-4 pt-6">
+            <button type="submit" class="btn-success py-3 px-6 text-lg">
+                <i class="fas fa-plus"></i> Ajouter l'Article
+            </button>
+            <a href="{% url 'core:invoice_detail' invoice.pk %}" class="btn-outline py-3 px-6 text-lg">
+                <i class="fas fa-arrow-left"></i> Annuler
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+    function updatePrice() {
+        const select = document.getElementById('product');
+        const option = select.options[select.selectedIndex];
+        const price = option.dataset.price || '';
+        document.getElementById('unit_price').value = price;
+    }
+</script>
+{% endblock %}

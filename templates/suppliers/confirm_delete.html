@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer Fournisseur - Facturation{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-red-600">⚠️ Supprimer le Fournisseur</h1>
+</div>
+
+<div class="bg-white rounded-lg shadow-lg p-8 max-w-2xl">
+    <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+        <p class="text-red-800 font-semibold">⚠️ Attention</p>
+        <p class="text-red-700 mt-2">Cette action est irréversible. Êtes-vous sûr de vouloir supprimer ce fournisseur ?</p>
+    </div>
+
+    <div class="bg-gray-50 rounded-lg p-6 mb-8">
+        <h3 class="text-lg font-bold text-gray-900 mb-4">📋 Détails du Fournisseur</h3>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <span class="text-gray-600 font-semibold">Nom:</span>
+                <p class="text-gray-900">{{ supplier.name }}</p>
+            </div>
+            <div>
+                <span class="text-gray-600 font-semibold">Email:</span>
+                <p class="text-gray-900">{{ supplier.email }}</p>
+            </div>
+            <div>
+                <span class="text-gray-600 font-semibold">Téléphone:</span>
+                <p class="text-gray-900">{{ supplier.phone }}</p>
+            </div>
+            <div>
+                <span class="text-gray-600 font-semibold">SIRET/TVA:</span>
+                <p class="text-gray-900">{{ supplier.tax_id }}</p>
+            </div>
+            <div class="col-span-2">
+                <span class="text-gray-600 font-semibold">Adresse:</span>
+                <p class="text-gray-900">{{ supplier.address }}, {{ supplier.postal_code }} {{ supplier.city }}, {{ supplier.country }}</p>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" class="flex gap-4">
+        {% csrf_token %}
+        <button type="submit" class="btn-danger py-3 px-6 text-lg">
+            <i class="fas fa-trash"></i> Confirmer la Suppression
+        </button>
+        <a href="{% url 'core:supplier_list' %}" class="btn-outline py-3 px-6 text-lg">
+            <i class="fas fa-times"></i> Annuler
+        </a>
+    </form>
+</div>
+{% endblock %}

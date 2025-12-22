@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ client.name }} - Clients{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <a href="{% url 'core:client_list' %}" class="text-blue-600 hover:text-blue-900 mb-6">← Retour aux clients</a>
+    
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ client.name }}</h1>
+        
+        <div class="grid grid-cols-2 gap-6">
+            <div>
+                <h3 class="font-semibold text-gray-700 mb-2">Informations</h3>
+                <p><span class="text-gray-600">Email:</span> {{ client.email }}</p>
+                <p><span class="text-gray-600">Téléphone:</span> {{ client.phone }}</p>
+                <p><span class="text-gray-600">Adresse:</span> {{ client.address }}</p>
+                <p><span class="text-gray-600">Ville:</span> {{ client.city }}, {{ client.country }}</p>
+            </div>
+            <div>
+                <h3 class="font-semibold text-gray-700 mb-2">Statistiques</h3>
+                <p><span class="text-gray-600">Total facturé:</span> <span class="font-bold">{{ stats.total_invoiced }} €</span></p>
+                <p><span class="text-gray-600">Total payé:</span> <span class="font-bold text-green-600">{{ stats.total_paid }} €</span></p>
+                <p><span class="text-gray-600">Factures en attente:</span> <span class="font-bold text-yellow-600">{{ stats.pending_invoices }}</span></p>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="text-2xl font-bold text-gray-900 mb-4">Factures récentes</h2>
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="min-w-full">
+            <thead class="bg-gray-100 border-b">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Numéro</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Montant</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Statut</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                <tr class="border-b">
+                    <td class="px-6 py-4"><a href="{% url 'core:invoice_detail' invoice.pk %}" class="text-blue-600">{{ invoice.number }}</a></td>
+                    <td class="px-6 py-4">{{ invoice.total_amount }} €</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded text-xs font-semibold 
+                            {% if invoice.status == 'paid' %}bg-green-100 text-green-800
+                            {% elif invoice.status == 'sent' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ invoice.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">{{ invoice.invoice_date|date:"d/m/Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

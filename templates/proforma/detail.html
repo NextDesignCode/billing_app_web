@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ proforma.proforma_number }} - Devis{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900">📜 Devis #{{ proforma.proforma_number }}</h1>
+            <p class="text-gray-600 mt-2">Client: <strong>{{ proforma.client.name }}</strong></p>
+        </div>
+        <a href="{% url 'core:proforma_list' %}" class="btn-outline py-3 px-6">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+</div>
+
+<!-- Proforma Info Cards -->
+<div class="grid grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <p class="text-gray-600 text-sm">Date d'Émission</p>
+        <p class="text-2xl font-bold text-gray-900">{{ proforma.issue_date|date:"d/m/Y" }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <p class="text-gray-600 text-sm">Date d'Expiration</p>
+        <p class="text-2xl font-bold text-gray-900">{{ proforma.expiry_date|date:"d/m/Y" }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <p class="text-gray-600 text-sm">Montant Total</p>
+        <p class="text-2xl font-bold text-green-600">{{ proforma.total|floatformat:2 }} €</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <p class="text-gray-600 text-sm">Statut</p>
+        <div class="mt-2">
+            {% if proforma.status == 'draft' %}
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-800">
+                    <i class="fas fa-file"></i> Brouillon
+                </span>
+            {% elif proforma.status == 'sent' %}
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                    <i class="fas fa-paper-plane"></i> Envoyé
+                </span>
+            {% elif proforma.status == 'accepted' %}
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
+                    <i class="fas fa-check"></i> Accepté
+                </span>
+            {% elif proforma.status == 'rejected' %}
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">
+                    <i class="fas fa-times"></i> Rejeté
+                </span>
+            {% elif proforma.status == 'expired' %}
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800">
+                    <i class="fas fa-calendar-times"></i> Expiré
+                </span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Client Info -->
+<div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">👤 Informations Client</h2>
+    <div class="grid grid-cols-2 gap-6">
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Nom</p>
+            <p class="text-gray-900">{{ proforma.client.name }}</p>
+        </div>
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Email</p>
+            <p class="text-gray-900">{{ proforma.client.email }}</p>
+        </div>
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Téléphone</p>
+            <p class="text-gray-900">{{ proforma.client.phone }}</p>
+        </div>
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Adresse</p>
+            <p class="text-gray-900">{{ proforma.client.address }}, {{ proforma.client.postal_code }} {{ proforma.client.city }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Proforma Items -->
+<div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+    <div class="p-6 border-b border-gray-200">
+        <h2 class="text-2xl font-bold text-gray-900">📦 Articles du Devis</h2>
+    </div>
+    {% if proforma.items.all %}
+        <table class="w-full">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="text-left py-4 px-6">Description</th>
+                    <th class="text-center py-4 px-6">Quantité</th>
+                    <th class="text-right py-4 px-6">Prix Unitaire</th>
+                    <th class="text-right py-4 px-6">TVA</th>
+                    <th class="text-right py-4 px-6">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in proforma.items.all %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="py-4 px-6">{{ item.description }}</td>
+                    <td class="py-4 px-6 text-center">{{ item.quantity|floatformat:2 }}</td>
+                    <td class="py-4 px-6 text-right">{{ item.unit_price|floatformat:2 }} €</td>
+                    <td class="py-4 px-6 text-right">{{ item.tax_rate|floatformat:0 }}% ({{ item.tax|floatformat:2 }} €)</td>
+                    <td class="py-4 px-6 text-right font-bold">{{ item.total|floatformat:2 }} €</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Totals -->
+        <div class="bg-gray-50 p-6 flex justify-end">
+            <div class="w-full max-w-sm">
+                <div class="flex justify-between py-2 border-b-2 border-gray-300">
+                    <span class="font-semibold">Sous-total:</span>
+                    <span>{{ proforma.subtotal|floatformat:2 }} €</span>
+                </div>
+                <div class="flex justify-between py-2 border-b-2 border-gray-300">
+                    <span class="font-semibold">TVA:</span>
+                    <span>{{ proforma.tax_amount|floatformat:2 }} €</span>
+                </div>
+                <div class="flex justify-between py-3 bg-blue-50 px-3 rounded-lg">
+                    <span class="font-bold text-lg">TOTAL:</span>
+                    <span class="font-bold text-lg text-blue-600">{{ proforma.total|floatformat:2 }} €</span>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="p-8 text-center text-gray-500">
+            <p>Aucun article dans ce devis</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Notes -->
+{% if proforma.notes %}
+<div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-4">📝 Notes</h2>
+    <p class="text-gray-700 whitespace-pre-wrap">{{ proforma.notes }}</p>
+</div>
+{% endif %}
+
+<!-- Description -->
+{% if proforma.description %}
+<div class="bg-white rounded-lg shadow-lg p-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-4">📄 Description</h2>
+    <p class="text-gray-700 whitespace-pre-wrap">{{ proforma.description }}</p>
+</div>
+{% endif %}
+{% endblock %}

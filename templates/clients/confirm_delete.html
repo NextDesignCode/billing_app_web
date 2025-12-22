@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer Client - Facturation{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-red-600">⚠️ Confirmer la Suppression</h1>
+</div>
+
+<div class="bg-red-50 border-2 border-red-200 rounded-lg p-8 max-w-2xl">
+    <div class="bg-white rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">{{ client.name }}</h2>
+        <div class="space-y-2 text-gray-700">
+            <p><strong>Email:</strong> {{ client.email }}</p>
+            <p><strong>Téléphone:</strong> {{ client.phone }}</p>
+            <p><strong>Adresse:</strong> {{ client.address }}, {{ client.postal_code }} {{ client.city }}, {{ client.country }}</p>
+            <p><strong>SIREN:</strong> {{ client.tax_id }}</p>
+        </div>
+    </div>
+
+    <div class="bg-red-100 border border-red-400 rounded p-4 mb-6">
+        <p class="text-red-800 font-semibold">⚠️ Cette action est irréversible!</p>
+        <p class="text-red-700 mt-2">Tous les documents liés à ce client seront également supprimés.</p>
+    </div>
+
+    <form method="post" class="flex gap-4">
+        {% csrf_token %}
+        <button type="submit" class="btn-danger py-3 px-6 text-lg">
+            <i class="fas fa-trash"></i> Oui, Supprimer Définitivement
+        </button>
+        <a href="{% url 'core:client_list' %}" class="btn-outline py-3 px-6 text-lg">
+            <i class="fas fa-times"></i> Annuler
+        </a>
+    </form>
+</div>
+{% endblock %}

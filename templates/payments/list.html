@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Paiements - Facturation{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <h1 class="text-4xl font-bold text-gray-900">💳 Paiements</h1>
+        <a href="{% url 'core:payment_create' %}" class="btn-success py-3 px-6 text-lg">
+            <i class="fas fa-plus"></i> Nouveau Paiement
+        </a>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+    <form method="get" class="flex gap-4">
+        <input type="text" name="search" placeholder="Chercher par facture ou référence..." value="{{ request.GET.search }}" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        <button type="submit" class="btn-primary py-2 px-4">
+            <i class="fas fa-search"></i> Rechercher
+        </button>
+    </form>
+</div>
+
+<!-- Payments Table -->
+<div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    {% if payments %}
+        <table class="w-full">
+            <thead class="bg-gray-100 border-b-2 border-gray-300">
+                <tr>
+                    <th class="text-left py-4 px-6">Facture</th>
+                    <th class="text-left py-4 px-6">Client</th>
+                    <th class="text-right py-4 px-6">Montant</th>
+                    <th class="text-left py-4 px-6">Méthode</th>
+                    <th class="text-center py-4 px-6">Date</th>
+                    <th class="text-left py-4 px-6">Référence</th>
+                    <th class="text-center py-4 px-6">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in payments %}
+                <tr class="border-b hover:bg-gray-50 transition">
+                    <td class="py-4 px-6">
+                        <a href="{% url 'core:invoice_detail' payment.invoice.pk %}" class="font-bold text-blue-600 hover:underline">
+                            {{ payment.invoice.invoice_number }}
+                        </a>
+                    </td>
+                    <td class="py-4 px-6">
+                        <strong>{{ payment.invoice.client.name }}</strong>
+                    </td>
+                    <td class="py-4 px-6 text-right font-bold text-lg">{{ payment.amount|floatformat:2 }} €</td>
+                    <td class="py-4 px-6">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                            {{ payment.get_payment_method_display }}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-center">{{ payment.payment_date|date:"d/m/Y" }}</td>
+                    <td class="py-4 px-6 font-mono text-sm">{{ payment.reference_number }}</td>
+                    <td class="py-4 px-6 text-center">
+                        <div class="flex justify-center gap-2">
+                            <a href="{% url 'core:invoice_detail' payment.invoice.pk %}" class="btn-primary py-2 px-3 text-sm" title="Voir la facture">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="p-8 text-center">
+            <i class="fas fa-credit-card text-5xl text-gray-300 mb-4"></i>
+            <p class="text-gray-600 text-lg">Aucun paiement trouvé</p>
+            <a href="{% url 'core:payment_create' %}" class="btn-success py-2 px-4 inline-block mt-4">
+                <i class="fas fa-plus"></i> Enregistrer un paiement
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

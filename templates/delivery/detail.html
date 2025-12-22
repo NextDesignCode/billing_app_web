@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ delivery.delivery_number }} - Bon de Livraison{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900">📦 Bon de Livraison #{{ delivery.delivery_number }}</h1>
+            <p class="text-gray-600 mt-2">Client: <strong>{{ delivery.client.name }}</strong></p>
+        </div>
+        <a href="{% url 'core:delivery_list' %}" class="btn-outline py-3 px-6">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+</div>
+
+<!-- Delivery Info Cards -->
+<div class="grid grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <p class="text-gray-600 text-sm">Date de Livraison</p>
+        <p class="text-2xl font-bold text-gray-900">{{ delivery.delivery_date|date:"d/m/Y" }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <p class="text-gray-600 text-sm">Date Prévue</p>
+        <p class="text-2xl font-bold text-gray-900">
+            {% if delivery.expected_delivery %}
+                {{ delivery.expected_delivery|date:"d/m/Y" }}
+            {% else %}
+                <span class="text-gray-400 text-sm">-</span>
+            {% endif %}
+        </p>
+    </div>
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <p class="text-gray-600 text-sm">Date Réelle</p>
+        <p class="text-2xl font-bold text-gray-900">
+            {% if delivery.actual_delivery %}
+                {{ delivery.actual_delivery|date:"d/m/Y" }}
+            {% else %}
+                <span class="text-gray-400 text-sm">-</span>
+            {% endif %}
+        </p>
+    </div>
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <p class="text-gray-600 text-sm">Facture Associée</p>
+        <p class="text-lg font-bold text-gray-900">
+            {% if delivery.invoice %}
+                <a href="{% url 'core:invoice_detail' delivery.invoice.pk %}" class="text-blue-600 hover:underline">
+                    {{ delivery.invoice.number }}
+                </a>
+            {% else %}
+                <span class="text-gray-400 text-sm">Aucune</span>
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Client Info -->
+<div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">👤 Informations Client</h2>
+    <div class="grid grid-cols-2 gap-6">
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Nom</p>
+            <p class="text-gray-900">{{ delivery.client.name }}</p>
+        </div>
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Email</p>
+            <p class="text-gray-900">{{ delivery.client.email }}</p>
+        </div>
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Téléphone</p>
+            <p class="text-gray-900">{{ delivery.client.phone }}</p>
+        </div>
+        <div>
+            <p class="text-gray-600 text-sm font-semibold">Adresse</p>
+            <p class="text-gray-900">{{ delivery.client.address }}, {{ delivery.client.postal_code }} {{ delivery.client.city }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Delivery Items -->
+<div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+    <div class="p-6 border-b border-gray-200">
+        <h2 class="text-2xl font-bold text-gray-900">📋 Articles Livrés</h2>
+    </div>
+    {% if delivery.items.all %}
+        <table class="w-full">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="text-left py-4 px-6">Description</th>
+                    <th class="text-center py-4 px-6">Commandée</th>
+                    <th class="text-center py-4 px-6">Livrée</th>
+                    <th class="text-right py-4 px-6">Prix Unitaire</th>
+                    <th class="text-right py-4 px-6">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in delivery.items.all %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="py-4 px-6">{{ item.description }}</td>
+                    <td class="py-4 px-6 text-center">{{ item.quantity_ordered|floatformat:2 }}</td>
+                    <td class="py-4 px-6 text-center font-bold">{{ item.quantity_delivered|floatformat:2 }}</td>
+                    <td class="py-4 px-6 text-right">{{ item.unit_price|floatformat:2 }} €</td>
+                    <td class="py-4 px-6 text-right font-bold">{{ item.quantity_delivered|mul:item.unit_price|floatformat:2 }} €</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="p-8 text-center text-gray-500">
+            <p>Aucun article dans cette livraison</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Notes -->
+{% if delivery.notes %}
+<div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-4">📝 Notes</h2>
+    <p class="text-gray-700 whitespace-pre-wrap">{{ delivery.notes }}</p>
+</div>
+{% endif %}
+
+<!-- Description -->
+{% if delivery.description %}
+<div class="bg-white rounded-lg shadow-lg p-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-4">📄 Description</h2>
+    <p class="text-gray-700 whitespace-pre-wrap">{{ delivery.description }}</p>
+</div>
+{% endif %}
+{% endblock %}

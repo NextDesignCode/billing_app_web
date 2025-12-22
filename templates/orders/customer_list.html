@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Commandes Clients - Facturation{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <h1 class="text-4xl font-bold text-gray-900">📋 Commandes Clients</h1>
+        <a href="{% url 'core:customer_order_create' %}" class="btn-success py-3 px-6 text-lg">
+            <i class="fas fa-plus"></i> Nouvelle Commande
+        </a>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+    <form method="get" class="space-y-4">
+        <div class="flex gap-4">
+            <input type="text" name="search" placeholder="Chercher par numéro ou client..." value="{{ request.GET.search }}" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <select name="status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="">-- Tous les statuts --</option>
+                {% for status_code, status_label in status_choices %}
+                    <option value="{{ status_code }}" {% if request.GET.status == status_code %}selected{% endif %}>{{ status_label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn-primary py-2 px-4">
+                <i class="fas fa-search"></i> Rechercher
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Orders Table -->
+<div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    {% if orders %}
+        <table class="w-full">
+            <thead class="bg-gray-100 border-b-2 border-gray-300">
+                <tr>
+                    <th class="text-left py-4 px-6">Numéro</th>
+                    <th class="text-left py-4 px-6">Client</th>
+                    <th class="text-center py-4 px-6">Date Commande</th>
+                    <th class="text-center py-4 px-6">Date Livraison</th>
+                    <th class="text-right py-4 px-6">Montant</th>
+                    <th class="text-center py-4 px-6">Statut</th>
+                    <th class="text-center py-4 px-6">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr class="border-b hover:bg-gray-50 transition">
+                    <td class="py-4 px-6">
+                        <a href="{% url 'core:customer_order_detail' order.pk %}" class="font-bold text-blue-600 hover:underline">
+                            {{ order.order_number }}
+                        </a>
+                    </td>
+                    <td class="py-4 px-6">
+                        <strong>{{ order.client.name }}</strong>
+                    </td>
+                    <td class="py-4 px-6 text-center">{{ order.order_date|date:"d/m/Y" }}</td>
+                    <td class="py-4 px-6 text-center">
+                        {% if order.delivery_date %}
+                            {{ order.delivery_date|date:"d/m/Y" }}
+                        {% else %}
+                            <span class="text-gray-400">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-6 text-right font-bold text-lg">{{ order.total|floatformat:2 }} €</td>
+                    <td class="py-4 px-6 text-center">
+                        {% if order.status == 'draft' %}
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-800">
+                                <i class="fas fa-file"></i> Brouillon
+                            </span>
+                        {% elif order.status == 'pending' %}
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-hourglass-start"></i> En attente
+                            </span>
+                        {% elif order.status == 'confirmed' %}
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                                <i class="fas fa-check-circle"></i> Confirmée
+                            </span>
+                        {% elif order.status == 'partial' %}
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800">
+                                <i class="fas fa-dolly"></i> Partiellement livrée
+                            </span>
+                        {% elif order.status == 'completed' %}
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
+                                <i class="fas fa-check"></i> Complétée
+                            </span>
+                        {% elif order.status == 'cancelled' %}
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">
+                                <i class="fas fa-times-circle"></i> Annulée
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        <div class="flex justify-center gap-2">
+                            <a href="{% url 'core:customer_order_detail' order.pk %}" class="btn-primary py-2 px-3 text-sm" title="Voir les détails">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="p-8 text-center">
+            <i class="fas fa-inbox text-5xl text-gray-300 mb-4"></i>
+            <p class="text-gray-600 text-lg">Aucune commande trouvée</p>
+            <a href="{% url 'core:customer_order_create' %}" class="btn-success py-2 px-4 inline-block mt-4">
+                <i class="fas fa-plus"></i> Créer une commande
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Facturation{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-4xl font-bold text-gray-900 mb-2">Bienvenue, {{ user.first_name|default:user.username }}! 👋</h1>
+    <p class="text-gray-600">Votre tableau de bord d'activité en temps réel</p>
+</div>
+
+<!-- KPI Cards Row 1 -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Invoiced -->
+    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white hover:shadow-xl transition">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-blue-100 text-sm font-semibold uppercase">Total Facturé</p>
+                <p class="text-3xl font-bold mt-2">{{ total_invoiced|floatformat:2 }} €</p>
+            </div>
+            <i class="fas fa-chart-line text-3xl opacity-50"></i>
+        </div>
+    </div>
+
+    <!-- Total Paid -->
+    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white hover:shadow-xl transition">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-green-100 text-sm font-semibold uppercase">Payé</p>
+                <p class="text-3xl font-bold mt-2">{{ total_paid|floatformat:2 }} €</p>
+            </div>
+            <i class="fas fa-check-circle text-3xl opacity-50"></i>
+        </div>
+    </div>
+
+    <!-- Pending Invoices -->
+    <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg shadow-lg p-6 text-white hover:shadow-xl transition">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-yellow-100 text-sm font-semibold uppercase">En Attente</p>
+                <p class="text-3xl font-bold mt-2">{{ pending_count }}</p>
+            </div>
+            <i class="fas fa-clock text-3xl opacity-50"></i>
+        </div>
+    </div>
+
+    <!-- Overdue Invoices -->
+    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-lg shadow-lg p-6 text-white hover:shadow-xl transition">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-red-100 text-sm font-semibold uppercase">En Retard</p>
+                <p class="text-3xl font-bold mt-2">{{ overdue_count }}</p>
+            </div>
+            <i class="fas fa-exclamation-circle text-3xl opacity-50"></i>
+        </div>
+    </div>
+</div>
+
+<!-- KPI Cards Row 2 -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Clients -->
+    <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition border-l-4 border-blue-500">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-gray-600 text-sm font-semibold uppercase">Clients Actifs</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_clients }}</p>
+            </div>
+            <i class="fas fa-users text-3xl text-blue-500 opacity-50"></i>
+        </div>
+    </div>
+
+    <!-- Suppliers -->
+    <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition border-l-4 border-green-500">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-gray-600 text-sm font-semibold uppercase">Fournisseurs</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_suppliers }}</p>
+            </div>
+            <i class="fas fa-building text-3xl text-green-500 opacity-50"></i>
+        </div>
+    </div>
+
+    <!-- Products -->
+    <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition border-l-4 border-purple-500">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-gray-600 text-sm font-semibold uppercase">Produits</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_products }}</p>
+                {% if low_stock_products %}
+                    <p class="text-xs text-red-600 mt-2"><i class="fas fa-exclamation-triangle"></i> {{ low_stock_products }} en rupture</p>
+                {% endif %}
+            </div>
+            <i class="fas fa-box text-3xl text-purple-500 opacity-50"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+    <h2 class="text-xl font-bold text-gray-900 mb-4">
+        <i class="fas fa-lightning-bolt text-yellow-500 mr-2"></i>Actions Rapides
+    </h2>
+    <div class="flex flex-wrap gap-3">
+        <a href="{% url 'core:invoice_create' %}" class="btn-primary py-2 px-4">
+            <i class="fas fa-plus"></i> Nouvelle Facture
+        </a>
+        <a href="{% url 'core:client_create' %}" class="btn-success py-2 px-4">
+            <i class="fas fa-user-plus"></i> Nouveau Client
+        </a>
+        <a href="{% url 'core:product_create' %}" class="btn-warning py-2 px-4">
+            <i class="fas fa-box"></i> Nouveau Produit
+        </a>
+        <a href="{% url 'core:proforma_create' %}" class="btn-outline py-2 px-4">
+            <i class="fas fa-file"></i> Proforma
+        </a>
+        <a href="{% url 'core:reports' %}" class="btn-outline py-2 px-4">
+            <i class="fas fa-chart-bar"></i> Rapports
+        </a>
+    </div>
+</div>
+
+<!-- Information Box -->
+<div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg p-6">
+    <h3 class="text-lg font-bold text-blue-900 mb-2">
+        <i class="fas fa-info-circle text-blue-600 mr-2"></i>Bienvenue dans votre système de facturation
+    </h3>
+    <p class="text-blue-800 leading-relaxed">
+        Gérez facilement vos factures, clients, produits et rapports depuis un seul endroit.
+        Utilisez le <strong>menu latéral</strong> pour accéder à tous les modules.
+        Pour toute aide, consultez la <strong>documentation</strong> ou contactez le support.
+    </p>
+</div>
+{% endblock %}

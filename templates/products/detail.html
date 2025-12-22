@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <a href="{% url 'core:product_list' %}" class="text-blue-600 hover:text-blue-900 mb-6">← Retour aux produits</a>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ product.name }}</h1>
+        
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div>
+                <p class="text-gray-600">SKU</p>
+                <p class="text-2xl font-bold text-gray-900">{{ product.sku }}</p>
+            </div>
+            <div>
+                <p class="text-gray-600">Catégorie</p>
+                <p class="text-2xl font-bold text-gray-900">{{ product.category }}</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div>
+                <p class="text-gray-600">Prix unitaire</p>
+                <p class="text-2xl font-bold text-gray-900">{{ product.unit_price }} €</p>
+            </div>
+            <div>
+                <p class="text-gray-600">Coût unitaire</p>
+                <p class="text-2xl font-bold text-gray-900">{{ product.cost_price }} €</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div>
+                <p class="text-gray-600">Stock actuel</p>
+                <p class="text-2xl font-bold 
+                    {% if product.quantity_in_stock <= product.reorder_level %}text-red-600{% else %}text-green-600{% endif %}">
+                    {{ product.quantity_in_stock }}
+                </p>
+            </div>
+            <div>
+                <p class="text-gray-600">Niveau réapprovisionnement</p>
+                <p class="text-2xl font-bold text-gray-900">{{ product.reorder_level }}</p>
+            </div>
+        </div>
+
+        <div>
+            <p class="text-gray-600">Taux TVA</p>
+            <p class="text-2xl font-bold text-gray-900">{{ product.tax_rate }}%</p>
+        </div>
+
+        {% if product.current_stock <= product.reorder_level %}
+        <div class="mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            ⚠️ Stock faible - Réapprovisionnement recommandé
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
