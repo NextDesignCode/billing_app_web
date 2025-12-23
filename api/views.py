@@ -7,12 +7,17 @@ from django.db.models import Sum, Count, Q, F
 from django.utils import timezone
 from django.http import FileResponse
 from datetime import timedelta
-from core.models import (
-    UserProfile, Client, Supplier, Product, Invoice, InvoiceItem,
-    ProformaInvoice, ProformaItem, DeliveryNote, DeliveryItem,
-    CustomerOrder, CustomerOrderItem, SupplierOrder, SupplierOrderItem,
-    Payment, DashboardMetric
-)
+from accounts.models import UserProfile
+from clients.models import Client
+from suppliers.models import Supplier
+from products.models import Product
+from invoices.models import Invoice, InvoiceItem
+from proforma.models import ProformaInvoice, ProformaItem
+from delivery.models import DeliveryNote, DeliveryItem
+from orders.models import CustomerOrder, CustomerOrderItem, SupplierOrder, SupplierOrderItem
+from payments.models import Payment
+from core.models import DashboardMetric
+
 from .serializers import (
     UserProfileSerializer, ClientSerializer, SupplierSerializer, ProductSerializer,
     InvoiceSerializer, InvoiceItemSerializer, ProformaInvoiceSerializer, ProformaItemSerializer,
@@ -36,7 +41,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
-    
+
     @action(detail=False, methods=['get'])
     def my_profile(self, request):
         """Get current user's profile"""
@@ -66,7 +71,7 @@ class ClientViewSet(viewsets.ModelViewSet):
     filterset_fields = ['is_active', 'city', 'country']
     search_fields = ['name', 'company', 'email', 'phone', 'tax_id']
     ordering_fields = ['name', 'created_at']
-    
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
@@ -86,7 +91,7 @@ class SupplierViewSet(viewsets.ModelViewSet):
     filterset_fields = ['is_active', 'city', 'country']
     search_fields = ['name', 'company', 'email', 'phone', 'tax_id']
     ordering_fields = ['name', 'created_at']
-    
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
@@ -106,10 +111,10 @@ class ProductViewSet(viewsets.ModelViewSet):
     filterset_fields = ['is_active', 'category']
     search_fields = ['name', 'sku', 'reference', 'description']
     ordering_fields = ['name', 'unit_price', 'quantity_in_stock']
-    
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
-    
+
     @action(detail=False, methods=['get'])
     def low_stock(self, request):
         """Get products with low stock"""
@@ -146,10 +151,10 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     filterset_fields = ['status', 'client', 'invoice_date']
     search_fields = ['invoice_number', 'client__name', 'description']
     ordering_fields = ['invoice_date', 'total', 'created_at']
-    
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
-    
+
     @action(detail=False, methods=['get'])
     def overdue(self, request):
         """Get overdue invoices"""
@@ -164,7 +169,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(overdue_invoices, many=True)
         return Response(serializer.data)
-    
+
     @action(detail=True, methods=['post'])
     def mark_as_paid(self, request, pk=None):
         """Mark invoice as paid"""
@@ -173,7 +178,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         invoice.paid_amount = invoice.total
         invoice.save()
         return Response({'status': 'Invoice marked as paid'})
-    
+
     @action(detail=True, methods=['get'])
     def export_pdf(self, request, pk=None):
         """Export invoice as PDF"""
@@ -185,7 +190,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             filename=f"Invoice_{invoice.invoice_number}.pdf",
             content_type='application/pdf'
         )
-    
+
     @action(detail=True, methods=['get'])
     def export_excel(self, request, pk=None):
         """Export invoice as Excel"""
@@ -197,7 +202,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             filename=f"Invoice_{invoice.invoice_number}.xlsx",
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
-    
+
     @action(detail=False, methods=['get'])
     def export_all_excel(self, request):
         """Export all invoices as Excel"""
@@ -237,7 +242,7 @@ class ProformaInvoiceViewSet(viewsets.ModelViewSet):
     filterset_fields = ['status', 'client', 'issue_date']
     search_fields = ['proforma_number', 'client__name', 'description']
     ordering_fields = ['issue_date', 'total', 'created_at']
-    
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
@@ -268,7 +273,7 @@ class DeliveryNoteViewSet(viewsets.ModelViewSet):
     filterset_fields = ['client', 'delivery_date']
     search_fields = ['delivery_number', 'client__name', 'description']
     ordering_fields = ['delivery_date', 'created_at']
-    
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
@@ -299,7 +304,7 @@ class CustomerOrderViewSet(viewsets.ModelViewSet):
     filterset_fields = ['status', 'client', 'order_date']
     search_fields = ['order_number', 'client__name', 'description']
     ordering_fields = ['order_date', 'total', 'created_at']
-    
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
@@ -330,7 +335,7 @@ class SupplierOrderViewSet(viewsets.ModelViewSet):
     filterset_fields = ['status', 'supplier', 'order_date']
     search_fields = ['purchase_order_number', 'supplier__name', 'description']
     ordering_fields = ['order_date', 'total', 'created_at']
-    
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
@@ -349,7 +354,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['invoice', 'method', 'payment_date']
     ordering_fields = ['payment_date', 'amount', 'created_at']
-    
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
@@ -364,7 +369,7 @@ def dashboard_overview(request):
     """Get dashboard overview with key metrics"""
     today = timezone.now().date()
     start_of_month = today.replace(day=1)
-    
+
     # Calculate metrics
     total_invoices = Invoice.objects.aggregate(Sum('total'))['total__sum'] or 0
     total_paid = Invoice.objects.aggregate(Sum('paid_amount'))['paid_amount__sum'] or 0
@@ -373,27 +378,27 @@ def dashboard_overview(request):
         due_date__lt=today,
         status__in=['sent', 'partial']
     ).count()
-    
+
     # Monthly metrics
     month_invoiced = Invoice.objects.filter(
         invoice_date__gte=start_of_month
     ).aggregate(Sum('total'))['total__sum'] or 0
-    
+
     month_paid = Payment.objects.filter(
         payment_date__gte=start_of_month
     ).aggregate(Sum('amount'))['amount__sum'] or 0
-    
+
     # Client metrics
     total_clients = Client.objects.filter(is_active=True).count()
     new_clients_this_month = Client.objects.filter(
         created_at__gte=start_of_month
     ).count()
-    
+
     # Product metrics
     low_stock_products = Product.objects.filter(
         quantity_in_stock__lte=F('reorder_level')
     ).count()
-    
+
     return Response({
         'total_invoices': float(total_invoices),
         'total_paid': float(total_paid),
@@ -412,24 +417,24 @@ def dashboard_overview(request):
 def sales_statistics(request):
     """Get sales statistics for the past 12 months"""
     today = timezone.now().date()
-    
+
     # Generate statistics for last 12 months
     statistics = []
     for i in range(11, -1, -1):
         month_start = today - timedelta(days=today.day + i*30)
         month_start = month_start.replace(day=1)
-        
+
         next_month = month_start + timedelta(days=31)
         next_month = next_month.replace(day=1)
-        
+
         monthly_total = Invoice.objects.filter(
             invoice_date__gte=month_start,
             invoice_date__lt=next_month
         ).aggregate(Sum('total'))['total__sum'] or 0
-        
+
         statistics.append({
             'month': month_start.strftime('%B %Y'),
             'total': float(monthly_total),
         })
-    
+
     return Response(statistics)

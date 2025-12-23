@@ -1,10 +1,14 @@
 from rest_framework import serializers
-from core.models import (
-    UserProfile, Client, Supplier, Product, Invoice, InvoiceItem,
-    ProformaInvoice, ProformaItem, DeliveryNote, DeliveryItem,
-    CustomerOrder, CustomerOrderItem, SupplierOrder, SupplierOrderItem,
-    Payment, DashboardMetric
-)
+from accounts.models import UserProfile
+from clients.models import Client
+from suppliers.models import Supplier
+from products.models import Product
+from invoices.models import Invoice, InvoiceItem
+from proforma.models import ProformaInvoice, ProformaItem
+from delivery.models import DeliveryNote, DeliveryItem
+from orders.models import CustomerOrder, CustomerOrderItem, SupplierOrder, SupplierOrderItem
+from payments.models import Payment
+from core.models import DashboardMetric
 from django.contrib.auth.models import User
 
 
@@ -21,7 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    
+
     class Meta:
         model = UserProfile
         fields = '__all__'
@@ -34,7 +38,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 class ClientSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
-    
+
     class Meta:
         model = Client
         fields = '__all__'
@@ -43,7 +47,7 @@ class ClientSerializer(serializers.ModelSerializer):
 
 class SupplierSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
-    
+
     class Meta:
         model = Supplier
         fields = '__all__'
@@ -57,12 +61,12 @@ class SupplierSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     is_low_stock = serializers.SerializerMethodField()
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
-    
+
     class Meta:
         model = Product
         fields = '__all__'
         read_only_fields = ('id', 'created_at', 'updated_at', 'created_by')
-    
+
     def get_is_low_stock(self, obj):
         return obj.is_low_stock()
 
@@ -73,7 +77,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class InvoiceItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
-    
+
     class Meta:
         model = InvoiceItem
         fields = '__all__'
@@ -84,7 +88,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
     items = InvoiceItemSerializer(many=True, read_only=True)
     client_name = serializers.CharField(source='client.name', read_only=True)
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
-    
+
     class Meta:
         model = Invoice
         fields = '__all__'
@@ -97,7 +101,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
 class ProformaItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
-    
+
     class Meta:
         model = ProformaItem
         fields = '__all__'
@@ -108,7 +112,7 @@ class ProformaInvoiceSerializer(serializers.ModelSerializer):
     items = ProformaItemSerializer(many=True, read_only=True)
     client_name = serializers.CharField(source='client.name', read_only=True)
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
-    
+
     class Meta:
         model = ProformaInvoice
         fields = '__all__'
@@ -121,7 +125,7 @@ class ProformaInvoiceSerializer(serializers.ModelSerializer):
 
 class DeliveryItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
-    
+
     class Meta:
         model = DeliveryItem
         fields = '__all__'
@@ -132,7 +136,7 @@ class DeliveryNoteSerializer(serializers.ModelSerializer):
     items = DeliveryItemSerializer(many=True, read_only=True)
     client_name = serializers.CharField(source='client.name', read_only=True)
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
-    
+
     class Meta:
         model = DeliveryNote
         fields = '__all__'
@@ -145,7 +149,7 @@ class DeliveryNoteSerializer(serializers.ModelSerializer):
 
 class CustomerOrderItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
-    
+
     class Meta:
         model = CustomerOrderItem
         fields = '__all__'
@@ -156,7 +160,7 @@ class CustomerOrderSerializer(serializers.ModelSerializer):
     items = CustomerOrderItemSerializer(many=True, read_only=True)
     client_name = serializers.CharField(source='client.name', read_only=True)
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
-    
+
     class Meta:
         model = CustomerOrder
         fields = '__all__'
@@ -169,7 +173,7 @@ class CustomerOrderSerializer(serializers.ModelSerializer):
 
 class SupplierOrderItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
-    
+
     class Meta:
         model = SupplierOrderItem
         fields = '__all__'
@@ -180,7 +184,7 @@ class SupplierOrderSerializer(serializers.ModelSerializer):
     items = SupplierOrderItemSerializer(many=True, read_only=True)
     supplier_name = serializers.CharField(source='supplier.name', read_only=True)
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
-    
+
     class Meta:
         model = SupplierOrder
         fields = '__all__'
@@ -194,7 +198,7 @@ class SupplierOrderSerializer(serializers.ModelSerializer):
 class PaymentSerializer(serializers.ModelSerializer):
     invoice_number = serializers.CharField(source='invoice.invoice_number', read_only=True)
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
-    
+
     class Meta:
         model = Payment
         fields = '__all__'
