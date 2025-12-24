@@ -1,17 +1,17 @@
-# ============================================================================
-# accounts/signals.py
-# ============================================================================
+# core/signals.py
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
-from .models import UserProfile
+from rest_framework.authtoken.models import Token
+from accounts.models import UserProfile  # <-- Corrigé : importer depuis accounts.models
 
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    """Create user profile when a new user is created"""
+    """Create user profile and token when a new user is created"""
     if created:
         UserProfile.objects.create(user=instance)
+        Token.objects.create(user=instance)
 
 
 @receiver(post_save, sender=User)

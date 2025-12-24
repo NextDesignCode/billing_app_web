@@ -28,7 +28,7 @@ from api.exports import (
 
 # ==================== INVOICES ====================
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def invoice_create(request):
     """Créer une nouvelle facture"""
     if request.method == 'POST':
@@ -52,7 +52,7 @@ def invoice_create(request):
     return render(request, 'invoices/create.html', {'clients': clients})
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def invoice_edit(request, pk):
     """Éditer une facture"""
     invoice = get_object_or_404(Invoice, pk=pk)
@@ -69,7 +69,7 @@ def invoice_edit(request, pk):
     return render(request, 'invoices/edit.html', {'invoice': invoice})
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def invoice_delete(request, pk):
     """Supprimer une facture"""
     invoice = get_object_or_404(Invoice, pk=pk)
@@ -83,7 +83,7 @@ def invoice_delete(request, pk):
     return render(request, 'invoices/confirm_delete.html', {'invoice': invoice})
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def invoice_add_item(request, pk):
     """Ajouter un article à une facture"""
     invoice = get_object_or_404(Invoice, pk=pk)
@@ -114,7 +114,7 @@ def invoice_add_item(request, pk):
     })
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def invoice_export_pdf(request, pk):
     """Exporter une facture en PDF"""
     invoice = get_object_or_404(Invoice, pk=pk)
@@ -125,7 +125,7 @@ def invoice_export_pdf(request, pk):
     return response
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def invoice_export_excel(request, pk):
     """Exporter une facture en Excel"""
     invoice = get_object_or_404(Invoice, pk=pk)
@@ -141,7 +141,7 @@ def invoice_export_excel(request, pk):
 
 # ==================== PROFORMA ====================
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def proforma_list(request):
     """Liste des devis proforma"""
     proformas = ProformaInvoice.objects.select_related('client').order_by('-created_at')
@@ -156,14 +156,14 @@ def proforma_list(request):
     return render(request, 'proforma/list.html', {'proformas': proformas})
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def proforma_detail(request, pk):
     """Détail d'une proforma"""
     proforma = get_object_or_404(ProformaInvoice, pk=pk)
     return render(request, 'proforma/detail.html', {'proforma': proforma})
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def proforma_create(request):
     """Créer une nouvelle proforma"""
     if request.method == 'POST':
@@ -181,7 +181,7 @@ def proforma_create(request):
 
 # ==================== DELIVERY NOTES ====================
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def delivery_list(request):
     """Liste des bons de livraison"""
     deliveries = DeliveryNote.objects.select_related('client').order_by('-created_at')
@@ -196,14 +196,14 @@ def delivery_list(request):
     return render(request, 'delivery/list.html', {'deliveries': deliveries})
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def delivery_detail(request, pk):
     """Détail d'un bon de livraison"""
     delivery = get_object_or_404(DeliveryNote, pk=pk)
     return render(request, 'delivery/detail.html', {'delivery': delivery})
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def delivery_create(request):
     """Créer un nouveau bon de livraison"""
     if request.method == 'POST':
@@ -233,7 +233,7 @@ def delivery_create(request):
 
 # ==================== CUSTOMER ORDERS ====================
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def customer_order_list(request):
     """Liste des commandes clients"""
     orders = CustomerOrder.objects.select_related('client').order_by('-created_at')
@@ -256,14 +256,14 @@ def customer_order_list(request):
     })
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def customer_order_detail(request, pk):
     """Détail d'une commande client"""
     order = get_object_or_404(CustomerOrder, pk=pk)
     return render(request, 'orders/customer_detail.html', {'order': order})
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def customer_order_create(request):
     """Créer une nouvelle commande client"""
     if request.method == 'POST':
@@ -286,7 +286,7 @@ def customer_order_create(request):
 
 # ==================== CLIENTS ====================
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def client_create(request):
     """Créer un nouveau client"""
     if request.method == 'POST':
@@ -307,7 +307,7 @@ def client_create(request):
     return render(request, 'clients/create.html')
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def client_edit(request, pk):
     """Éditer un client"""
     client = get_object_or_404(Client, pk=pk)
@@ -329,7 +329,7 @@ def client_edit(request, pk):
     return render(request, 'clients/edit.html', {'client': client})
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def client_delete(request, pk):
     """Supprimer un client"""
     client = get_object_or_404(Client, pk=pk)
@@ -345,7 +345,7 @@ def client_delete(request, pk):
 
 # ==================== PRODUCTS ====================
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def product_create(request):
     """Créer un nouveau produit"""
     if request.method == 'POST':
@@ -366,7 +366,7 @@ def product_create(request):
     return render(request, 'products/create.html')
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def product_edit(request, pk):
     """Éditer un produit"""
     product = get_object_or_404(Product, pk=pk)
@@ -388,7 +388,7 @@ def product_edit(request, pk):
     return render(request, 'products/edit.html', {'product': product})
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def product_delete(request, pk):
     """Supprimer un produit"""
     product = get_object_or_404(Product, pk=pk)
@@ -404,7 +404,7 @@ def product_delete(request, pk):
 
 # ==================== SUPPLIERS ====================
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def supplier_create(request):
     """Créer un nouveau fournisseur"""
     if request.method == 'POST':
@@ -426,7 +426,7 @@ def supplier_create(request):
     return render(request, 'suppliers/create.html', {})
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def supplier_edit(request, pk):
     """Éditer un fournisseur"""
     supplier = get_object_or_404(Supplier, pk=pk)
@@ -447,7 +447,7 @@ def supplier_edit(request, pk):
     return render(request, 'suppliers/edit.html', {'supplier': supplier})
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def supplier_delete(request, pk):
     """Supprimer un fournisseur"""
     supplier = get_object_or_404(Supplier, pk=pk)
@@ -463,7 +463,7 @@ def supplier_delete(request, pk):
 
 # ==================== PAYMENTS ====================
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def payment_create(request):
     """Créer un nouveau paiement"""
     if request.method == 'POST':
@@ -484,7 +484,7 @@ def payment_create(request):
 
 # ==================== MISC ====================
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def payment_list(request):
     """Liste les paiements"""
     payments = Payment.objects.all().order_by('-payment_date')
@@ -498,7 +498,7 @@ def payment_list(request):
     return render(request, 'payments/list.html', {'payments': payments})
 
 
-@login_required(login_url='core:login')
+@login_required(login_url='accounts:login')
 def supplier_list(request):
     """Liste les fournisseurs"""
     suppliers = Supplier.objects.filter(is_active=True).order_by('name')
