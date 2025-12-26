@@ -1,132 +1,347 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard - Facturation{% endblock %}
+{% block title %}Dashboard - {{ site_name }}{% endblock %}
+{% block page_title %}Tableau de bord{% endblock %}
+{% block page_subtitle %}Vue d'ensemble de votre activité{% endblock %}
 
 {% block content %}
-<div class="mb-8">
-    <h1 class="text-4xl font-bold text-gray-900 mb-2">Bienvenue, {{ user.first_name|default:user.username }}! 👋</h1>
-    <p class="text-gray-600">Votre tableau de bord d'activité en temps réel</p>
-</div>
 
-<!-- KPI Cards Row 1 -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
+
     <!-- Total Invoiced -->
-    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white hover:shadow-xl transition">
-        <div class="flex justify-between items-start">
-            <div>
-                <p class="text-blue-100 text-sm font-semibold uppercase">Total Facturé</p>
-                <p class="text-3xl font-bold mt-2">{{ total_invoiced|floatformat:2 }} €</p>
+    <div class="relative overflow-hidden bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
+                    <i class="fas fa-euro-sign text-white text-xl"></i>
+                </div>
+                <span class="px-3 py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full">
+                    Total
+                </span>
             </div>
-            <i class="fas fa-chart-line text-3xl opacity-50"></i>
+            <h3 class="text-3xl font-bold text-gray-900">
+                {{ total_invoiced|floatformat:2 }} €
+            </h3>
+            <p class="mt-1 text-sm text-gray-500">Total facturé</p>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-green-600 font-medium flex items-center">
+                    <i class="fas fa-arrow-up mr-1"></i> 12.5%
+                </span>
+                <span class="ml-2 text-gray-500">vs mois dernier</span>
+            </div>
         </div>
+        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-500 opacity-5 rounded-full"></div>
     </div>
 
     <!-- Total Paid -->
-    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white hover:shadow-xl transition">
-        <div class="flex justify-between items-start">
-            <div>
-                <p class="text-green-100 text-sm font-semibold uppercase">Payé</p>
-                <p class="text-3xl font-bold mt-2">{{ total_paid|floatformat:2 }} €</p>
+    <div class="relative overflow-hidden bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 shadow-lg">
+                    <i class="fas fa-check-circle text-white text-xl"></i>
+                </div>
+                <span class="px-3 py-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full">
+                    Payé
+                </span>
             </div>
-            <i class="fas fa-check-circle text-3xl opacity-50"></i>
+            <h3 class="text-3xl font-bold text-gray-900">
+                {{ total_paid|floatformat:2 }} €
+            </h3>
+            <p class="mt-1 text-sm text-gray-500">Total encaissé</p>
+            <div class="mt-4">
+                <div class="flex items-center justify-between text-sm mb-1">
+                    <span class="text-gray-500">Taux de recouvrement</span>
+                    <span class="font-medium text-gray-900">
+                        {% widthratio total_paid total_invoiced 100 %}%
+                    </span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full"
+                         style="width: {% widthratio total_paid total_invoiced 100 %}%"></div>
+                </div>
+            </div>
         </div>
+        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-green-500 opacity-5 rounded-full"></div>
     </div>
 
     <!-- Pending Invoices -->
-    <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg shadow-lg p-6 text-white hover:shadow-xl transition">
-        <div class="flex justify-between items-start">
-            <div>
-                <p class="text-yellow-100 text-sm font-semibold uppercase">En Attente</p>
-                <p class="text-3xl font-bold mt-2">{{ pending_count }}</p>
+    <div class="relative overflow-hidden bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 shadow-lg">
+                    <i class="fas fa-clock text-white text-xl"></i>
+                </div>
+                <span class="px-3 py-1 text-xs font-semibold text-yellow-700 bg-yellow-100 rounded-full">
+                    En attente
+                </span>
             </div>
-            <i class="fas fa-clock text-3xl opacity-50"></i>
+            <h3 class="text-3xl font-bold text-gray-900">
+                {{ pending_count }}
+            </h3>
+            <p class="mt-1 text-sm text-gray-500">Factures en attente</p>
+            <div class="mt-4">
+                <a href="{% url 'invoices:list' %}?status=sent"
+                   class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center">
+                    Voir les factures
+                    <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </a>
+            </div>
         </div>
+        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-yellow-500 opacity-5 rounded-full"></div>
     </div>
 
     <!-- Overdue Invoices -->
-    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-lg shadow-lg p-6 text-white hover:shadow-xl transition">
-        <div class="flex justify-between items-start">
-            <div>
-                <p class="text-red-100 text-sm font-semibold uppercase">En Retard</p>
-                <p class="text-3xl font-bold mt-2">{{ overdue_count }}</p>
+    <div class="relative overflow-hidden bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-red-500 to-red-600 shadow-lg">
+                    <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+                </div>
+                <span class="px-3 py-1 text-xs font-semibold text-red-700 bg-red-100 rounded-full">
+                    Urgent
+                </span>
             </div>
-            <i class="fas fa-exclamation-circle text-3xl opacity-50"></i>
-        </div>
-    </div>
-</div>
-
-<!-- KPI Cards Row 2 -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <!-- Clients -->
-    <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition border-l-4 border-blue-500">
-        <div class="flex justify-between items-start">
-            <div>
-                <p class="text-gray-600 text-sm font-semibold uppercase">Clients Actifs</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_clients }}</p>
-            </div>
-            <i class="fas fa-users text-3xl text-blue-500 opacity-50"></i>
-        </div>
-    </div>
-
-    <!-- Suppliers -->
-    <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition border-l-4 border-green-500">
-        <div class="flex justify-between items-start">
-            <div>
-                <p class="text-gray-600 text-sm font-semibold uppercase">Fournisseurs</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_suppliers }}</p>
-            </div>
-            <i class="fas fa-building text-3xl text-green-500 opacity-50"></i>
-        </div>
-    </div>
-
-    <!-- Products -->
-    <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition border-l-4 border-purple-500">
-        <div class="flex justify-between items-start">
-            <div>
-                <p class="text-gray-600 text-sm font-semibold uppercase">Produits</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_products }}</p>
-                {% if low_stock_products %}
-                    <p class="text-xs text-red-600 mt-2"><i class="fas fa-exclamation-triangle"></i> {{ low_stock_products }} en rupture</p>
+            <h3 class="text-3xl font-bold text-gray-900">
+                {{ overdue_count }}
+            </h3>
+            <p class="mt-1 text-sm text-gray-500">Factures en retard</p>
+            <div class="mt-4">
+                {% if overdue_count > 0 %}
+                <a href="{% url 'invoices:list' %}?status=overdue"
+                   class="text-sm text-red-600 hover:text-red-700 font-medium flex items-center">
+                    Action requise
+                    <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </a>
+                {% else %}
+                <span class="text-sm text-green-600 font-medium flex items-center">
+                    <i class="fas fa-check mr-2"></i>
+                    Tout est à jour
+                </span>
                 {% endif %}
             </div>
-            <i class="fas fa-box text-3xl text-purple-500 opacity-50"></i>
+        </div>
+        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-red-500 opacity-5 rounded-full"></div>
+    </div>
+</div>
+
+<!-- Charts and Recent Activity -->
+<div class="grid grid-cols-1 gap-6 mb-8 lg:grid-cols-2">
+
+    <!-- Recent Invoices -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-bold text-gray-900">Factures récentes</h2>
+                <a href="{% url 'invoices:list' %}"
+                   class="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                    Voir tout
+                </a>
+            </div>
+        </div>
+        <div class="p-6">
+            {% if recent_invoices %}
+            <div class="space-y-4">
+                {% for invoice in recent_invoices %}
+                <a href="{% url 'invoices:detail' invoice.pk %}"
+                   class="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 border border-gray-100 transition-all hover:shadow-sm group">
+                    <div class="flex items-center flex-1">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-lg
+                                    {% if invoice.status == 'paid' %}bg-green-100 text-green-600
+                                    {% elif invoice.status == 'sent' %}bg-blue-100 text-blue-600
+                                    {% elif invoice.status == 'overdue' %}bg-red-100 text-red-600
+                                    {% else %}bg-gray-100 text-gray-600{% endif %}">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <p class="text-sm font-medium text-gray-900 group-hover:text-primary-600">
+                                {{ invoice.invoice_number }}
+                            </p>
+                            <p class="text-xs text-gray-500">
+                                {{ invoice.client.name }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-gray-900">
+                            {{ invoice.total|floatformat:2 }} €
+                        </p>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                     {% if invoice.status == 'paid' %}bg-green-100 text-green-800
+                                     {% elif invoice.status == 'sent' %}bg-blue-100 text-blue-800
+                                     {% elif invoice.status == 'overdue' %}bg-red-100 text-red-800
+                                     {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ invoice.get_status_display }}
+                        </span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-file-invoice text-gray-300 text-5xl mb-4"></i>
+                <p class="text-gray-500">Aucune facture récente</p>
+                <a href="{% url 'invoices:create' %}"
+                   class="mt-4 inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700">
+                    <i class="fas fa-plus mr-2"></i>
+                    Créer une facture
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Payments -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-bold text-gray-900">Paiements récents</h2>
+                <a href="{% url 'payments:list' %}"
+                   class="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                    Voir tout
+                </a>
+            </div>
+        </div>
+        <div class="p-6">
+            {% if recent_payments %}
+            <div class="space-y-4">
+                {% for payment in recent_payments %}
+                <div class="flex items-center justify-between p-4 rounded-lg bg-green-50 border border-green-100">
+                    <div class="flex items-center flex-1">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 text-green-600">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <p class="text-sm font-medium text-gray-900">
+                                {{ payment.invoice.invoice_number }}
+                            </p>
+                            <p class="text-xs text-gray-500">
+                                {{ payment.payment_date|date:"d/m/Y" }} - {{ payment.get_method_display }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-green-600">
+                            +{{ payment.amount|floatformat:2 }} €
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-credit-card text-gray-300 text-5xl mb-4"></i>
+                <p class="text-gray-500">Aucun paiement récent</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Quick Actions -->
-<div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-    <h2 class="text-xl font-bold text-gray-900 mb-4">
-        <i class="fas fa-lightning-bolt text-yellow-500 mr-2"></i>Actions Rapides
-    </h2>
-    <div class="flex flex-wrap gap-3">
-        <a href="{% url 'core:invoice_create' %}" class="btn-primary py-2 px-4">
-            <i class="fas fa-plus"></i> Nouvelle Facture
-        </a>
-        <a href="{% url 'core:client_create' %}" class="btn-success py-2 px-4">
-            <i class="fas fa-user-plus"></i> Nouveau Client
-        </a>
-        <a href="{% url 'core:product_create' %}" class="btn-warning py-2 px-4">
-            <i class="fas fa-box"></i> Nouveau Produit
-        </a>
-        <a href="{% url 'core:proforma_create' %}" class="btn-outline py-2 px-4">
-            <i class="fas fa-file"></i> Proforma
-        </a>
-        <a href="{% url 'core:reports' %}" class="btn-outline py-2 px-4">
-            <i class="fas fa-chart-bar"></i> Rapports
-        </a>
+<!-- Additional Stats -->
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+    <!-- Clients Stats -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-gray-900">Clients</h3>
+            <i class="fas fa-users text-primary-600 text-2xl"></i>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-500">Total clients</span>
+                <span class="text-2xl font-bold text-gray-900">{{ total_clients }}</span>
+            </div>
+            <div class="pt-3 border-t border-gray-100">
+                <a href="{% url 'clients:list' %}"
+                   class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center justify-between">
+                    Gérer les clients
+                    <i class="fas fa-arrow-right text-xs"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Stats -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-gray-900">Produits</h3>
+            <i class="fas fa-box text-primary-600 text-2xl"></i>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-500">Total produits</span>
+                <span class="text-2xl font-bold text-gray-900">{{ total_products }}</span>
+            </div>
+            {% if low_stock_products > 0 %}
+            <div class="flex items-center justify-between p-2 bg-yellow-50 rounded-lg">
+                <span class="text-xs text-yellow-700">Stock faible</span>
+                <span class="text-sm font-bold text-yellow-700">{{ low_stock_products }}</span>
+            </div>
+            {% endif %}
+            <div class="pt-3 border-t border-gray-100">
+                <a href="{% url 'products:list' %}"
+                   class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center justify-between">
+                    Gérer les produits
+                    <i class="fas fa-arrow-right text-xs"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Stats -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-gray-900">Commandes</h3>
+            <i class="fas fa-shopping-cart text-primary-600 text-2xl"></i>
+        </div>
+        <div class="space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-500">En cours</span>
+                <span class="text-2xl font-bold text-gray-900">{{ pending_orders }}</span>
+            </div>
+            <div class="pt-3 border-t border-gray-100">
+                <a href="{% url 'orders:customer_list' %}"
+                   class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center justify-between">
+                    Voir les commandes
+                    <i class="fas fa-arrow-right text-xs"></i>
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- Information Box -->
-<div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg p-6">
-    <h3 class="text-lg font-bold text-blue-900 mb-2">
-        <i class="fas fa-info-circle text-blue-600 mr-2"></i>Bienvenue dans votre système de facturation
-    </h3>
-    <p class="text-blue-800 leading-relaxed">
-        Gérez facilement vos factures, clients, produits et rapports depuis un seul endroit.
-        Utilisez le <strong>menu latéral</strong> pour accéder à tous les modules.
-        Pour toute aide, consultez la <strong>documentation</strong> ou contactez le support.
-    </p>
+<!-- Low Stock Alert -->
+{% if low_stock_items %}
+<div class="mt-8 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl shadow-sm border border-yellow-200 p-6">
+    <div class="flex items-start">
+        <div class="flex-shrink-0">
+            <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
+        </div>
+        <div class="ml-4 flex-1">
+            <h3 class="text-lg font-bold text-gray-900 mb-2">
+                Alerte Stock Faible
+            </h3>
+            <p class="text-sm text-gray-600 mb-4">
+                {{ low_stock_products }} produit{{ low_stock_products|pluralize }} nécessite{{ low_stock_products|pluralize:"nt" }} un réapprovisionnement
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {% for product in low_stock_items %}
+                <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-yellow-200">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">{{ product.name }}</p>
+                        <p class="text-xs text-gray-500">Stock: {{ product.quantity_in_stock }}</p>
+                    </div>
+                    <a href="{% url 'products:edit' product.pk %}"
+                       class="text-xs text-primary-600 hover:text-primary-700 font-medium">
+                        Réapprovisionner
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 </div>
+{% endif %}
+
 {% endblock %}

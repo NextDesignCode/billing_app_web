@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Profil - {{ site_name }}{% endblock %}
+{% block page_title %}Mon Profil{% endblock %}
+{% block page_subtitle %}Gérez vos informations personnelles et paramètres{% endblock %}
+
+{% block content %}
+
+<div class="max-w-5xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Sidebar Profile Card -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <!-- Profile Header -->
+                <div class="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-8 text-center">
+                    <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-white shadow-lg mb-4">
+                        <span class="text-4xl font-bold text-primary-600">
+                            {{ user.first_name.0|default:user.username.0|upper }}{{ user.last_name.0|default:''|upper }}
+                        </span>
+                    </div>
+                    <h2 class="text-xl font-bold text-white">
+                        {{ user.get_full_name|default:user.username }}
+                    </h2>
+                    <p class="text-primary-100 text-sm mt-1">
+                        {{ user.profile.get_role_display }}
+                    </p>
+                </div>
+
+                <!-- Profile Info -->
+                <div class="p-6 space-y-4">
+                    <div class="flex items-center text-sm">
+                        <i class="fas fa-envelope w-8 text-gray-400"></i>
+                        <span class="text-gray-900">{{ user.email }}</span>
+                    </div>
+                    {% if user.profile.phone %}
+                    <div class="flex items-center text-sm">
+                        <i class="fas fa-phone w-8 text-gray-400"></i>
+                        <span class="text-gray-900">{{ user.profile.phone }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.profile.company_name %}
+                    <div class="flex items-center text-sm">
+                        <i class="fas fa-building w-8 text-gray-400"></i>
+                        <span class="text-gray-900">{{ user.profile.company_name }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="flex items-center text-sm">
+                        <i class="fas fa-calendar w-8 text-gray-400"></i>
+                        <span class="text-gray-900">Membre depuis {{ user.date_joined|date:"F Y" }}</span>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                    <h3 class="text-xs font-semibold text-gray-500 uppercase mb-3">
+                        Actions rapides
+                    </h3>
+                    <div class="space-y-2">
+                        <button class="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-white hover:shadow-sm rounded-lg transition-all">
+                            <i class="fas fa-key w-6 text-gray-400"></i>
+                            Changer le mot de passe
+                        </button>
+                        <button class="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-white hover:shadow-sm rounded-lg transition-all">
+                            <i class="fas fa-download w-6 text-gray-400"></i>
+                            Exporter mes données
+                        </button>
+                        <a href="{% url 'accounts:logout' %}"
+                           class="w-full flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                            <i class="fas fa-sign-out-alt w-6"></i>
+                            Se déconnecter
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Personal Information -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-user-circle text-primary-600 mr-3"></i>
+                        Informations personnelles
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- First Name -->
+                            <div>
+                                <label for="id_first_name" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Prénom
+                                </label>
+                                {{ form.first_name }}
+                            </div>
+
+                            <!-- Last Name -->
+                            <div>
+                                <label for="id_last_name" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Nom
+                                </label>
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label for="id_email" class="block text-sm font-medium text-gray-700 mb-2">
+                                Email
+                            </label>
+                            {{ form.email }}
+                        </div>
+
+                        <!-- Phone -->
+                        <div>
+                            <label for="id_phone" class="block text-sm font-medium text-gray-700 mb-2">
+                                Téléphone
+                            </label>
+                            {{ form.phone }}
+                        </div>
+
+                        <!-- Language -->
+                        <div>
+                            <label for="id_language" class="block text-sm font-medium text-gray-700 mb-2">
+                                Langue
+                            </label>
+                            {{ form.language }}
+                        </div>
+
+                        <div class="flex justify-end pt-4 border-t border-gray-200">
+                            <button type="submit"
+                                    class="flex items-center px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 shadow-sm hover:shadow-md transition-all">
+                                <i class="fas fa-save mr-2"></i>
+                                Enregistrer les modifications
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Company Information -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-building text-primary-600 mr-3"></i>
+                        Informations de l'entreprise
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+
+                        <!-- Company Name -->
+                        <div>
+                            <label for="id_company_name" class="block text-sm font-medium text-gray-700 mb-2">
+                                Nom de l'entreprise
+                            </label>
+                            {{ form.company_name }}
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Address -->
+                            <div class="md:col-span-2">
+                                <label for="id_address" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Adresse
+                                </label>
+                                {{ form.address }}
+                            </div>
+
+                            <!-- City -->
+                            <div>
+                                <label for="id_city" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Ville
+                                </label>
+                                {{ form.city }}
+                            </div>
+
+                            <!-- Postal Code -->
+                            <div>
+                                <label for="id_postal_code" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Code postal
+                                </label>
+                                {{ form.postal_code }}
+                            </div>
+
+                            <!-- Country -->
+                            <div class="md:col-span-2">
+                                <label for="id_country" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Pays
+                                </label>
+                                {{ form.country }}
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end pt-4 border-t border-gray-200">
+                            <button type="submit"
+                                    class="flex items-center px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 shadow-sm hover:shadow-md transition-all">
+                                <i class="fas fa-save mr-2"></i>
+                                Enregistrer les modifications
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Activity Stats -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-chart-line text-primary-600 mr-3"></i>
+                        Votre activité
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
+                            <div class="text-3xl font-bold text-blue-600 mb-1">
+                                {{ user.invoices_created.count }}
+                            </div>
+                            <div class="text-xs text-blue-700 font-medium">
+                                Factures créées
+                            </div>
+                        </div>
+                        <div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
+                            <div class="text-3xl font-bold text-green-600 mb-1">
+                                {{ user.clients_created.count }}
+                            </div>
+                            <div class="text-xs text-green-700 font-medium">
+                                Clients ajoutés
+                            </div>
+                        </div>
+                        <div class="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
+                            <div class="text-3xl font-bold text-purple-600 mb-1">
+                                {{ user.products_created.count }}
+                            </div>
+                            <div class="text-xs text-purple-700 font-medium">
+                                Produits créés
+                            </div>
+                        </div>
+                        <div class="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl">
+                            <div class="text-3xl font-bold text-orange-600 mb-1">
+                                {{ user.payments_created.count }}
+                            </div>
+                            <div class="text-xs text-orange-700 font-medium">
+                                Paiements enregistrés
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-shield-alt text-primary-600 mr-3"></i>
+                        Sécurité
+                    </h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-key text-gray-400 text-xl mr-4"></i>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Mot de passe</p>
+                                <p class="text-xs text-gray-500">Dernière modification il y a 30 jours</p>
+                            </div>
+                        </div>
+                        <button class="px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-all">
+                            Modifier
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-mobile-alt text-gray-400 text-xl mr-4"></i>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Authentification à deux facteurs</p>
+                                <p class="text-xs text-gray-500">Non activée</p>
+                            </div>
+                        </div>
+                        <button class="px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-all">
+                            Activer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

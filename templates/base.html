@@ -1,114 +1,435 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Facturation{% endblock %}</title>
+    <title>{% block title %}{{ site_name }}{% endblock %}</title>
+
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Alpine.js for interactive components -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .sidebar-active { @apply bg-blue-100 border-l-4 border-blue-600; }
-        .btn-action { @apply px-3 py-2 rounded text-sm font-medium transition duration-200; }
-        .btn-primary { @apply btn-action bg-blue-600 text-white hover:bg-blue-700; }
-        .btn-success { @apply btn-action bg-green-600 text-white hover:bg-green-700; }
-        .btn-danger { @apply btn-action bg-red-600 text-white hover:bg-red-700; }
-        .btn-warning { @apply btn-action bg-yellow-600 text-white hover:bg-yellow-700; }
-        .btn-outline { @apply btn-action border border-gray-300 text-gray-700 hover:bg-gray-100; }
+        [x-cloak] { display: none !important; }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Smooth transitions */
+        * {
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Animation for sidebar */
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
     </style>
+
+    {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-gray-50">
-    <!-- Navigation Supérieure -->
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
-        <div class="px-4 py-3 lg:px-8">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-file-invoice text-white text-lg"></i>
+<body class="h-full" x-data="{ sidebarOpen: true, mobileMenuOpen: false }">
+
+    <!-- Mobile menu overlay -->
+    <div x-show="mobileMenuOpen"
+         x-cloak
+         @click="mobileMenuOpen = false"
+         class="fixed inset-0 z-40 bg-gray-900 bg-opacity-50 lg:hidden"
+         x-transition:enter="transition-opacity ease-linear duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-linear duration-300"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+    </div>
+
+    <!-- Sidebar -->
+    <div class="fixed inset-y-0 left-0 z-50 flex flex-col"
+         :class="sidebarOpen ? 'w-64' : 'w-20'"
+         x-show="sidebarOpen || mobileMenuOpen"
+         @click.away="mobileMenuOpen = false">
+
+        <!-- Sidebar content -->
+        <div class="flex flex-col flex-1 min-h-0 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 shadow-2xl">
+
+            <!-- Logo section -->
+            <div class="flex items-center justify-between h-20 px-4 bg-gray-900 border-b border-gray-700">
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 shadow-lg">
+                        <i class="fas fa-file-invoice-dollar text-white text-xl"></i>
                     </div>
-                    <h1 class="text-2xl font-bold text-gray-800">💼 Facturation Pro</h1>
+                    <span x-show="sidebarOpen"
+                          class="text-xl font-bold text-white"
+                          x-transition>
+                        Facturation Pro
+                    </span>
                 </div>
 
-                <div class="flex items-center gap-4">
-                    {% if user.is_authenticated %}
-                        <span class="text-gray-700 font-medium">👤 {{ user.username }}</span>
-                        <a href="{% url 'accounts:logout' %}" class="btn-danger py-2">
-                            <i class="fas fa-sign-out-alt"></i> Déconnexion
+                <!-- Toggle button (desktop) -->
+                <button @click="sidebarOpen = !sidebarOpen"
+                        class="hidden lg:flex items-center justify-center w-8 h-8 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas" :class="sidebarOpen ? 'fa-chevron-left' : 'fa-chevron-right'"></i>
+                </button>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+
+                <!-- Dashboard -->
+                <a href="{% url 'core:dashboard' %}"
+                   class="flex items-center px-3 py-3 text-sm font-medium text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white group">
+                    <i class="fas fa-home w-6 text-center"></i>
+                    <span x-show="sidebarOpen" class="ml-3" x-transition>Dashboard</span>
+                </a>
+
+                <!-- Invoices Section -->
+                <div x-data="{ open: false }">
+                    <button @click="open = !open"
+                            class="flex items-center justify-between w-full px-3 py-3 text-sm font-medium text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white group">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-invoice w-6 text-center"></i>
+                            <span x-show="sidebarOpen" class="ml-3" x-transition>Facturation</span>
+                        </div>
+                        <i x-show="sidebarOpen"
+                           class="fas fa-chevron-down text-xs transition-transform"
+                           :class="open ? 'rotate-180' : ''"
+                           x-transition></i>
+                    </button>
+                    <div x-show="open && sidebarOpen"
+                         x-collapse
+                         class="pl-11 mt-1 space-y-1">
+                        <a href="{% url 'invoices:list' %}"
+                           class="block px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg">
+                            Factures
                         </a>
-                    {% endif %}
+                        <a href="{% url 'proforma:list' %}"
+                           class="block px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg">
+                            Proforma
+                        </a>
+                        <a href="{% url 'delivery:list' %}"
+                           class="block px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg">
+                            Bons de livraison
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Orders Section -->
+                <div x-data="{ open: false }">
+                    <button @click="open = !open"
+                            class="flex items-center justify-between w-full px-3 py-3 text-sm font-medium text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white group">
+                        <div class="flex items-center">
+                            <i class="fas fa-shopping-cart w-6 text-center"></i>
+                            <span x-show="sidebarOpen" class="ml-3" x-transition>Commandes</span>
+                        </div>
+                        <i x-show="sidebarOpen"
+                           class="fas fa-chevron-down text-xs transition-transform"
+                           :class="open ? 'rotate-180' : ''"
+                           x-transition></i>
+                    </button>
+                    <div x-show="open && sidebarOpen"
+                         x-collapse
+                         class="pl-11 mt-1 space-y-1">
+                        <a href="{% url 'orders:customer_list' %}"
+                           class="block px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg">
+                            Commandes clients
+                        </a>
+                        <a href="{% url 'orders:supplier_list' %}"
+                           class="block px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg">
+                            Commandes fournisseurs
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Clients -->
+                <a href="{% url 'clients:list' %}"
+                   class="flex items-center px-3 py-3 text-sm font-medium text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white group">
+                    <i class="fas fa-users w-6 text-center"></i>
+                    <span x-show="sidebarOpen" class="ml-3" x-transition>Clients</span>
+                </a>
+
+                <!-- Suppliers -->
+                <a href="{% url 'suppliers:list' %}"
+                   class="flex items-center px-3 py-3 text-sm font-medium text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white group">
+                    <i class="fas fa-truck w-6 text-center"></i>
+                    <span x-show="sidebarOpen" class="ml-3" x-transition>Fournisseurs</span>
+                </a>
+
+                <!-- Products -->
+                <a href="{% url 'products:list' %}"
+                   class="flex items-center px-3 py-3 text-sm font-medium text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white group">
+                    <i class="fas fa-box w-6 text-center"></i>
+                    <span x-show="sidebarOpen" class="ml-3" x-transition>Produits</span>
+                </a>
+
+                <!-- Payments -->
+                <a href="{% url 'payments:list' %}"
+                   class="flex items-center px-3 py-3 text-sm font-medium text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white group">
+                    <i class="fas fa-credit-card w-6 text-center"></i>
+                    <span x-show="sidebarOpen" class="ml-3" x-transition>Paiements</span>
+                </a>
+
+                <!-- Reports -->
+                <a href="{% url 'core:reports' %}"
+                   class="flex items-center px-3 py-3 text-sm font-medium text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white group">
+                    <i class="fas fa-chart-bar w-6 text-center"></i>
+                    <span x-show="sidebarOpen" class="ml-3" x-transition>Rapports</span>
+                </a>
+
+                <!-- Divider -->
+                <div class="my-4 border-t border-gray-700"></div>
+
+                <!-- Settings -->
+                <a href="{% url 'accounts:profile' %}"
+                   class="flex items-center px-3 py-3 text-sm font-medium text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white group">
+                    <i class="fas fa-cog w-6 text-center"></i>
+                    <span x-show="sidebarOpen" class="ml-3" x-transition>Paramètres</span>
+                </a>
+
+            </nav>
+
+            <!-- User section -->
+            <div class="p-4 border-t border-gray-700 bg-gray-900">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold shadow-lg">
+                            {{ user.first_name.0|default:user.username.0|upper }}
+                        </div>
+                    </div>
+                    <div x-show="sidebarOpen"
+                         class="ml-3 flex-1"
+                         x-transition>
+                        <p class="text-sm font-medium text-white">
+                            {{ user.get_full_name|default:user.username }}
+                        </p>
+                        <a href="{% url 'accounts:logout' %}"
+                           class="text-xs text-gray-400 hover:text-white flex items-center mt-1">
+                            <i class="fas fa-sign-out-alt mr-1"></i>
+                            Déconnexion
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-gray-900 text-white overflow-y-auto hidden md:block">
-            <nav class="p-6 space-y-2">
-                <div class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-6">MENU PRINCIPAL</div>
+    <!-- Main content -->
+    <div :class="sidebarOpen ? 'lg:pl-64' : 'lg:pl-20'"
+         class="flex flex-col flex-1 min-h-screen transition-all duration-300">
 
-                <a href="{% url 'core:dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
-                    <i class="fas fa-th-large w-5"></i> Dashboard
-                </a>
+        <!-- Top navbar -->
+        <div class="sticky top-0 z-10 flex items-center justify-between h-20 px-4 bg-white border-b border-gray-200 shadow-sm lg:px-8">
 
-                <div class="text-xs font-bold uppercase tracking-wider text-gray-400 mt-6 mb-3">DOCUMENTS</div>
+            <!-- Mobile menu button -->
+            <button @click="mobileMenuOpen = !mobileMenuOpen"
+                    class="lg:hidden text-gray-500 hover:text-gray-700">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
 
-                <div class="space-y-1">
-                    <a href="{% url 'core:invoice_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
-                        <i class="fas fa-receipt w-5"></i> Factures
-                    </a>
-                    <a href="{% url 'core:proforma_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
-                        <i class="fas fa-file-alt w-5"></i> Proforma
-                    </a>
-                    <a href="{% url 'core:delivery_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
-                        <i class="fas fa-truck w-5"></i> Bons de Livraison
-                    </a>
-                    <a href="{% url 'core:customer_order_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
-                        <i class="fas fa-shopping-cart w-5"></i> Commandes
-                    </a>
-                </div>
+            <!-- Page title -->
+            <div class="flex-1">
+                <h1 class="text-2xl font-bold text-gray-900">
+                    {% block page_title %}Dashboard{% endblock %}
+                </h1>
+                <p class="text-sm text-gray-500">
+                    {% block page_subtitle %}{% endblock %}
+                </p>
+            </div>
 
-                <div class="text-xs font-bold uppercase tracking-wider text-gray-400 mt-6 mb-3">GESTION</div>
+            <!-- Notifications and quick actions -->
+            <div class="flex items-center space-x-4">
 
-                <a href="{% url 'core:client_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
-                    <i class="fas fa-users w-5"></i> Clients
-                </a>
-                <a href="{% url 'core:supplier_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
-                    <i class="fas fa-industry w-5"></i> Fournisseurs
-                </a>
-                <a href="{% url 'core:product_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
-                    <i class="fas fa-boxes w-5"></i> Produits
-                </a>
-                <a href="{% url 'core:payment_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
-                    <i class="fas fa-credit-card w-5"></i> Paiements
-                </a>
+                <!-- Notifications -->
+                {% if overdue_invoices_count or low_stock_count %}
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open"
+                            class="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="absolute top-0 right-0 w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full flex items-center justify-center">
+                            {{ overdue_invoices_count|add:low_stock_count }}
+                        </span>
+                    </button>
 
-                <div class="text-xs font-bold uppercase tracking-wider text-gray-400 mt-6 mb-3">UTILITAIRES</div>
+                    <div x-show="open"
+                         @click.away="open = false"
+                         x-cloak
+                         x-transition
+                         class="absolute right-0 w-80 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
+                        <div class="p-4 bg-gray-50 border-b border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
+                        </div>
+                        <div class="max-h-96 overflow-y-auto">
+                            {% if overdue_invoices_count %}
+                            <a href="{% url 'invoices:list' %}?status=overdue"
+                               class="block p-4 hover:bg-gray-50 border-b border-gray-100">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
+                                    </div>
+                                    <div class="ml-3 flex-1">
+                                        <p class="text-sm font-medium text-gray-900">
+                                            Factures en retard
+                                        </p>
+                                        <p class="text-xs text-gray-500">
+                                            {{ overdue_invoices_count }} facture{{ overdue_invoices_count|pluralize }} en retard
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                            {% endif %}
 
-                <a href="{% url 'core:reports' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
-                    <i class="fas fa-chart-bar w-5"></i> Rapports
-                </a>
-                <a href="{% url 'admin:index' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
-                    <i class="fas fa-cog w-5"></i> Admin
-                </a>
-            </nav>
-        </aside>
-
-        <!-- Contenu Principal -->
-        <main class="flex-1 overflow-y-auto">
-            <div class="p-4 lg:p-8">
-                {% if messages %}
-                    {% for message in messages %}
-                    <div class="mb-4 p-4 rounded-lg {% if message.tags %}bg-{{ message.tags }}-100 border border-{{ message.tags }}-400 text-{{ message.tags }}-700{% else %}bg-blue-100 border border-blue-400 text-blue-700{% endif %}">
-                        <i class="fas fa-check-circle"></i> {{ message }}
+                            {% if low_stock_count %}
+                            <a href="{% url 'products:list' %}?low_stock=true"
+                               class="block p-4 hover:bg-gray-50">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-box text-yellow-500 text-xl"></i>
+                                    </div>
+                                    <div class="ml-3 flex-1">
+                                        <p class="text-sm font-medium text-gray-900">
+                                            Stock faible
+                                        </p>
+                                        <p class="text-xs text-gray-500">
+                                            {{ low_stock_count }} produit{{ low_stock_count|pluralize }} en stock faible
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                            {% endif %}
+                        </div>
                     </div>
-                    {% endfor %}
+                </div>
                 {% endif %}
 
-                {% block content %}{% endblock %}
+                <!-- Quick create -->
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open"
+                            class="flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 shadow-lg hover:shadow-xl">
+                        <i class="fas fa-plus mr-2"></i>
+                        <span class="hidden sm:inline">Nouveau</span>
+                    </button>
+
+                    <div x-show="open"
+                         @click.away="open = false"
+                         x-cloak
+                         x-transition
+                         class="absolute right-0 w-56 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
+                        <a href="{% url 'invoices:create' %}"
+                           class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
+                            <i class="fas fa-file-invoice w-5 text-primary-600"></i>
+                            <span class="ml-2">Nouvelle facture</span>
+                        </a>
+                        <a href="{% url 'clients:create' %}"
+                           class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
+                            <i class="fas fa-user-plus w-5 text-primary-600"></i>
+                            <span class="ml-2">Nouveau client</span>
+                        </a>
+                        <a href="{% url 'products:create' %}"
+                           class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
+                            <i class="fas fa-box w-5 text-primary-600"></i>
+                            <span class="ml-2">Nouveau produit</span>
+                        </a>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="px-4 py-3 lg:px-8">
+            {% for message in messages %}
+            <div class="mb-3 p-4 rounded-lg border-l-4 {% if message.tags == 'success' %}bg-green-50 border-green-500 text-green-800{% elif message.tags == 'error' %}bg-red-50 border-red-500 text-red-800{% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-500 text-yellow-800{% else %}bg-blue-50 border-blue-500 text-blue-800{% endif %}"
+                 x-data="{ show: true }"
+                 x-show="show"
+                 x-transition>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %} mr-3"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    <button @click="show = false"
+                            class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Page content -->
+        <main class="flex-1 px-4 py-6 lg:px-8">
+            {% block content %}{% endblock %}
         </main>
+
+        <!-- Footer -->
+        <footer class="px-4 py-6 mt-8 bg-white border-t border-gray-200 lg:px-8">
+            <div class="flex flex-col items-center justify-between md:flex-row">
+                <p class="text-sm text-gray-500">
+                    © {{ current_year }} {{ site_name }}. Tous droits réservés.
+                </p>
+                <p class="text-sm text-gray-500">
+                    Version {{ site_version }}
+                </p>
+            </div>
+        </footer>
     </div>
+
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
