@@ -1,337 +1,191 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}{{ client.name }} - {{ site_name }}{% endblock %}
+{% block title %}{{ client.name }}{% endblock %}
 {% block page_title %}{{ client.name }}{% endblock %}
-{% block page_subtitle %}
-    <div class="flex items-center space-x-2 mt-1">
-        {% if client.is_active %}
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            <i class="fas fa-check-circle mr-1"></i> Actif
-        </span>
-        {% else %}
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-            <i class="fas fa-ban mr-1"></i> Inactif
-        </span>
-        {% endif %}
-        <span class="text-sm text-gray-500">•</span>
-        <span class="text-sm text-gray-500">Client depuis {{ client.created_at|date:"F Y" }}</span>
-    </div>
+{% block page_subtitle %}Fiche client{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card:hover { transform: translateY(-2px); }
+</style>
 {% endblock %}
 
 {% block content %}
+<div class="space-y-6">
 
-<!-- Action Bar -->
-<div class="mb-6 flex items-center justify-between">
-    <a href="{% url 'clients:list' %}"
-       class="inline-flex items-center text-sm font-medium text-gray-600 hover:text-gray-900">
-        <i class="fas fa-arrow-left mr-2"></i>
-        Retour à la liste
-    </a>
-
-    <div class="flex items-center space-x-3">
-        <a href="{% url 'invoices:create' %}?client={{ client.pk }}"
-           class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-green-700 rounded-lg hover:from-green-700 hover:to-green-800 shadow-sm">
-            <i class="fas fa-file-invoice mr-2"></i>
-            Nouvelle facture
-        </a>
-        <a href="{% url 'clients:edit' client.pk %}"
-           class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm">
-            <i class="fas fa-edit mr-2"></i>
-            Modifier
-        </a>
-        <button onclick="confirmDelete()"
-                class="inline-flex items-center px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50 shadow-sm">
-            <i class="fas fa-trash mr-2"></i>
-            Supprimer
-        </button>
-    </div>
-</div>
-
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-    <!-- Left Column - Client Info -->
-    <div class="lg:col-span-1 space-y-6">
-
-        <!-- Contact Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-8 text-center">
-                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white shadow-lg mb-4">
-                    <span class="text-3xl font-bold text-primary-600">
-                        {{ client.name.0|upper }}
-                    </span>
-                </div>
-                <h2 class="text-xl font-bold text-white mb-1">
-                    {{ client.name }}
-                </h2>
-                {% if client.company %}
-                <p class="text-primary-100 text-sm">
-                    {{ client.company }}
-                </p>
-                {% endif %}
-            </div>
-
-            <div class="p-6 space-y-4">
-                {% if client.email %}
-                <div class="flex items-start">
-                    <i class="fas fa-envelope w-8 text-gray-400 mt-0.5"></i>
-                    <div class="flex-1">
-                        <p class="text-xs text-gray-500 mb-1">Email</p>
-                        <a href="mailto:{{ client.email }}"
-                           class="text-sm text-gray-900 hover:text-primary-600">
-                            {{ client.email }}
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if client.phone %}
-                <div class="flex items-start">
-                    <i class="fas fa-phone w-8 text-gray-400 mt-0.5"></i>
-                    <div class="flex-1">
-                        <p class="text-xs text-gray-500 mb-1">Téléphone</p>
-                        <a href="tel:{{ client.phone }}"
-                           class="text-sm text-gray-900 hover:text-primary-600">
-                            {{ client.phone }}
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if client.fax %}
-                <div class="flex items-start">
-                    <i class="fas fa-fax w-8 text-gray-400 mt-0.5"></i>
-                    <div class="flex-1">
-                        <p class="text-xs text-gray-500 mb-1">Fax</p>
-                        <p class="text-sm text-gray-900">{{ client.fax }}</p>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if client.website %}
-                <div class="flex items-start">
-                    <i class="fas fa-globe w-8 text-gray-400 mt-0.5"></i>
-                    <div class="flex-1">
-                        <p class="text-xs text-gray-500 mb-1">Site web</p>
-                        <a href="{{ client.website }}"
-                           target="_blank"
-                           class="text-sm text-primary-600 hover:text-primary-700">
-                            {{ client.website }}
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
+    <!-- Header Actions -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div class="flex items-center space-x-2">
+             <span class="{% if client.is_active %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %} px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide">
+                {% if client.is_active %}Actif{% else %}Inactif{% endif %}
+            </span>
+            <span class="text-gray-400 text-sm">ID: {{ client.id|slice:":8" }}...</span>
         </div>
 
-        <!-- Address Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                <i class="fas fa-map-marker-alt text-primary-600 mr-3"></i>
-                Adresse
-            </h3>
-            <div class="text-sm text-gray-900 space-y-1">
-                <p>{{ client.address }}</p>
-                <p>{{ client.postal_code }} {{ client.city }}</p>
-                <p>{{ client.country }}</p>
-            </div>
+        <div class="flex space-x-3">
+            <a href="{% url 'clients:edit' client.pk %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-colors">
+                <i class="fas fa-edit mr-2 text-gray-500"></i> Modifier
+            </a>
+            <a href="{% url 'clients:delete' client.pk %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none transition-colors">
+                <i class="fas fa-trash-alt mr-2"></i> Supprimer
+            </a>
+            <!-- Placeholder Bouton Facture -->
+            <a href="#" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none transition-colors">
+                <i class="fas fa-plus mr-2"></i> Nouvelle Facture
+            </a>
         </div>
-
-        <!-- Business Info Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                <i class="fas fa-briefcase text-primary-600 mr-3"></i>
-                Informations commerciales
-            </h3>
-            <div class="space-y-3">
-                {% if client.tax_id %}
-                <div>
-                    <p class="text-xs text-gray-500 mb-1">Numéro TVA</p>
-                    <p class="text-sm text-gray-900 font-mono">{{ client.tax_id }}</p>
-                </div>
-                {% endif %}
-
-                {% if client.payment_terms %}
-                <div>
-                    <p class="text-xs text-gray-500 mb-1">Conditions de paiement</p>
-                    <p class="text-sm text-gray-900">{{ client.payment_terms }}</p>
-                </div>
-                {% endif %}
-
-                {% if client.credit_limit %}
-                <div>
-                    <p class="text-xs text-gray-500 mb-1">Limite de crédit</p>
-                    <p class="text-sm text-gray-900">{{ client.credit_limit }} €</p>
-                </div>
-                {% endif %}
-
-                {% if client.contact_person %}
-                <div>
-                    <p class="text-xs text-gray-500 mb-1">Personne de contact</p>
-                    <p class="text-sm text-gray-900">{{ client.contact_person }}</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Notes Card -->
-        {% if client.notes %}
-        <div class="bg-yellow-50 rounded-xl border border-yellow-200 p-6">
-            <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center">
-                <i class="fas fa-sticky-note text-yellow-600 mr-3"></i>
-                Notes
-            </h3>
-            <p class="text-sm text-gray-700 whitespace-pre-line">{{ client.notes }}</p>
-        </div>
-        {% endif %}
     </div>
 
-    <!-- Right Column - Activity -->
-    <div class="lg:col-span-2 space-y-6">
-
-        <!-- Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-                <div class="flex items-center justify-between mb-3">
-                    <h4 class="text-sm font-medium text-blue-700">Total facturé</h4>
-                    <div class="w-10 h-10 bg-blue-200 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-euro-sign text-blue-600"></i>
-                    </div>
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 stat-card transition-transform duration-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Facturé</h3>
+                <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
+                    <i class="fas fa-wallet"></i>
                 </div>
-                <p class="text-3xl font-bold text-blue-900">{{ stats.total_invoiced|floatformat:2 }} €</p>
-                <p class="text-xs text-blue-600 mt-2">Sur toute la période</p>
             </div>
+            <div class="text-3xl font-bold text-gray-900">{{ stats.total_invoiced|floatformat:2 }} €</div>
+            <p class="text-xs text-gray-400 mt-1">Cumul historique</p>
+        </div>
 
-            <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
-                <div class="flex items-center justify-between mb-3">
-                    <h4 class="text-sm font-medium text-green-700">Total payé</h4>
-                    <div class="w-10 h-10 bg-green-200 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-check-circle text-green-600"></i>
-                    </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 stat-card transition-transform duration-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Payé</h3>
+                <div class="p-2 bg-green-50 rounded-lg text-green-600">
+                    <i class="fas fa-check-circle"></i>
                 </div>
-                <p class="text-3xl font-bold text-green-900">{{ stats.total_paid|floatformat:2 }} €</p>
-                <p class="text-xs text-green-600 mt-2">
-                    {% widthratio stats.total_paid stats.total_invoiced 100 %}% du total
-                </p>
             </div>
+            <div class="text-3xl font-bold text-gray-900">{{ stats.total_paid|floatformat:2 }} €</div>
+            <p class="text-xs text-gray-400 mt-1">Encaissements validés</p>
+        </div>
 
-            <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
-                <div class="flex items-center justify-between mb-3">
-                    <h4 class="text-sm font-medium text-purple-700">En attente</h4>
-                    <div class="w-10 h-10 bg-purple-200 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-clock text-purple-600"></i>
-                    </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 stat-card transition-transform duration-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">En Attente</h3>
+                <div class="p-2 bg-orange-50 rounded-lg text-orange-600">
+                    <i class="fas fa-hourglass-half"></i>
                 </div>
-                <p class="text-3xl font-bold text-purple-900">{{ stats.pending_invoices }}</p>
-                <p class="text-xs text-purple-600 mt-2">Factures non payées</p>
+            </div>
+            <div class="text-3xl font-bold text-gray-900">{{ stats.pending_invoices }}</div>
+            <p class="text-xs text-gray-400 mt-1">Factures en attente de paiement</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Contact Info -->
+        <div class="lg:col-span-1 space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h3 class="text-lg font-medium text-gray-900">Coordonnées</h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    {% if client.company %}
+                    <div class="flex items-start">
+                        <i class="fas fa-building text-gray-400 mt-1 mr-3 w-5 text-center"></i>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase">Entreprise</p>
+                            <p class="text-sm font-medium text-gray-900">{{ client.company }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="flex items-start">
+                        <i class="fas fa-envelope text-gray-400 mt-1 mr-3 w-5 text-center"></i>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase">Email</p>
+                            <a href="mailto:{{ client.email }}" class="text-sm text-primary-600 hover:underline break-all">{{ client.email|default:"-" }}</a>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <i class="fas fa-phone text-gray-400 mt-1 mr-3 w-5 text-center"></i>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase">Téléphone</p>
+                            <p class="text-sm text-gray-900">{{ client.phone|default:"-" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <i class="fas fa-map-marker-alt text-gray-400 mt-1 mr-3 w-5 text-center"></i>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase">Adresse</p>
+                            <p class="text-sm text-gray-900 whitespace-pre-line">{{ client.address }}{{ client.city }}{{ client.postal_code }}{{ client.country }}</p>
+                        </div>
+                    </div>
+
+                    {% if client.tax_id %}
+                    <div class="flex items-start">
+                        <i class="fas fa-id-card text-gray-400 mt-1 mr-3 w-5 text-center"></i>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase">ID Fiscal</p>
+                            <p class="text-sm font-mono text-gray-900">{{ client.tax_id }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if client.notes %}
+                    <div class="pt-4 border-t border-gray-100">
+                        <p class="text-xs text-gray-500 uppercase mb-1">Notes</p>
+                        <p class="text-sm text-gray-600 italic bg-yellow-50 p-2 rounded">{{ client.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
         <!-- Recent Invoices -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-bold text-gray-900">Factures récentes</h3>
-                    <a href="{% url 'invoices:list' %}?client={{ client.pk }}"
-                       class="text-sm text-primary-600 hover:text-primary-700 font-medium">
-                        Voir tout
-                    </a>
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden h-full">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                    <h3 class="text-lg font-medium text-gray-900">Factures Récentes</h3>
+                    <a href="#" class="text-sm text-primary-600 hover:text-primary-800 font-medium">Voir tout</a>
                 </div>
-            </div>
-
-            {% if invoices %}
-            <div class="p-6">
-                <div class="space-y-3">
-                    {% for invoice in invoices %}
-                    <a href="{% url 'invoices:detail' invoice.pk %}"
-                       class="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 border border-gray-100 transition-all group">
-                        <div class="flex items-center flex-1">
-                            <div class="flex items-center justify-center w-12 h-12 rounded-lg
-                                        {% if invoice.status == 'paid' %}bg-green-100 text-green-600
-                                        {% elif invoice.status == 'sent' %}bg-blue-100 text-blue-600
-                                        {% elif invoice.status == 'overdue' %}bg-red-100 text-red-600
-                                        {% else %}bg-gray-100 text-gray-600{% endif %}">
-                                <i class="fas fa-file-invoice"></i>
-                            </div>
-                            <div class="ml-4 flex-1">
-                                <p class="text-sm font-medium text-gray-900 group-hover:text-primary-600">
-                                    {{ invoice.invoice_number }}
-                                </p>
-                                <p class="text-xs text-gray-500">
-                                    {{ invoice.invoice_date|date:"d/m/Y" }} • Échéance: {{ invoice.due_date|date:"d/m/Y" }}
-                                </p>
-                            </div>
-                        </div>
-                        <div class="text-right ml-4">
-                            <p class="text-sm font-bold text-gray-900">
-                                {{ invoice.total|floatformat:2 }} €
-                            </p>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                         {% if invoice.status == 'paid' %}bg-green-100 text-green-800
-                                         {% elif invoice.status == 'sent' %}bg-blue-100 text-blue-800
-                                         {% elif invoice.status == 'overdue' %}bg-red-100 text-red-800
-                                         {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                {{ invoice.get_status_display }}
-                            </span>
-                        </div>
-                    </a>
-                    {% endfor %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
+                            <tr>
+                                <th class="px-6 py-3">N° Facture</th>
+                                <th class="px-6 py-3">Date</th>
+                                <th class="px-6 py-3 text-right">Total</th>
+                                <th class="px-6 py-3 text-center">Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for invoice in invoices %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                                    FAC-{{ invoice.id|slice:":6" }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-500">
+                                    {{ invoice.created_at|date:"d/m/Y" }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-900 text-right font-medium">
+                                    {{ invoice.total }} €
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    {% if invoice.status == 'paid' %}
+                                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Payée</span>
+                                    {% elif invoice.status == 'sent' %}
+                                        <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Envoyée</span>
+                                    {% else %}
+                                        <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">Brouillon</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="px-6 py-8 text-center text-sm text-gray-500">
+                                    Aucune facture récente pour ce client.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-            {% else %}
-            <div class="p-12 text-center">
-                <i class="fas fa-file-invoice text-gray-300 text-5xl mb-4"></i>
-                <p class="text-gray-500 mb-4">Aucune facture pour ce client</p>
-                <a href="{% url 'invoices:create' %}?client={{ client.pk }}"
-                   class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700">
-                    <i class="fas fa-plus mr-2"></i>
-                    Créer une facture
-                </a>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Activity Timeline -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center">
-                <i class="fas fa-history text-primary-600 mr-3"></i>
-                Historique d'activité
-            </h3>
-
-            <div class="space-y-4">
-                <div class="flex items-start">
-                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                        <i class="fas fa-user-check text-green-600"></i>
-                    </div>
-                    <div class="ml-4 flex-1">
-                        <p class="text-sm font-medium text-gray-900">Client créé</p>
-                        <p class="text-xs text-gray-500">{{ client.created_at|date:"d/m/Y à H:i" }}</p>
-                    </div>
-                </div>
-
-                {% if client.updated_at != client.created_at %}
-                <div class="flex items-start">
-                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <i class="fas fa-edit text-blue-600"></i>
-                    </div>
-                    <div class="ml-4 flex-1">
-                        <p class="text-sm font-medium text-gray-900">Dernière modification</p>
-                        <p class="text-xs text-gray-500">{{ client.updated_at|date:"d/m/Y à H:i" }}</p>
-                    </div>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
-
-{% endblock %}
-
-{% block extra_js %}
-<script>
-function confirmDelete() {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.')) {
-        window.location.href = '{% url "clients:delete" client.pk %}';
-    }
-}
-</script>
 {% endblock %}

@@ -248,20 +248,36 @@
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
                         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold shadow-lg">
-                            {{ user.first_name.0|default:user.username.0|upper }}
+                            {% if user.is_authenticated %}
+                                {{ user.first_name.0|default:user.username.0|upper }}
+                            {% else %}
+                                <i class="fas fa-user text-sm"></i>
+                            {% endif %}
                         </div>
                     </div>
                     <div x-show="sidebarOpen"
                          class="ml-3 flex-1"
                          x-transition>
                         <p class="text-sm font-medium text-white">
-                            {{ user.get_full_name|default:user.username }}
+                            {% if user.is_authenticated %}
+                                {{ user.get_full_name|default:user.username }}
+                            {% else %}
+                                Invité
+                            {% endif %}
                         </p>
+                        {% if user.is_authenticated %}
                         <a href="{% url 'accounts:logout' %}"
                            class="text-xs text-gray-400 hover:text-white flex items-center mt-1">
                             <i class="fas fa-sign-out-alt mr-1"></i>
                             Déconnexion
                         </a>
+                        {% else %}
+                        <a href="{% url 'accounts:login' %}"
+                           class="text-xs text-gray-400 hover:text-white flex items-center mt-1">
+                            <i class="fas fa-sign-in-alt mr-1"></i>
+                            Connexion
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -293,99 +309,107 @@
 
             <!-- Notifications and quick actions -->
             <div class="flex items-center space-x-4">
-
                 <!-- Notifications -->
-                {% if overdue_invoices_count or low_stock_count %}
-                <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open"
-                            class="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
-                        <i class="fas fa-bell text-xl"></i>
-                        <span class="absolute top-0 right-0 w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full flex items-center justify-center">
-                            {{ overdue_invoices_count|add:low_stock_count }}
-                        </span>
-                    </button>
+                {% if user.is_authenticated %}
+                    {% if overdue_invoices_count or low_stock_count %}
+                    <div x-data="{ open: false }" class="relative">
+                        <button @click="open = !open"
+                                class="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute top-0 right-0 w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full flex items-center justify-center">
+                                {{ overdue_invoices_count|add:low_stock_count }}
+                            </span>
+                        </button>
 
-                    <div x-show="open"
-                         @click.away="open = false"
-                         x-cloak
-                         x-transition
-                         class="absolute right-0 w-80 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
-                        <div class="p-4 bg-gray-50 border-b border-gray-200">
-                            <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
-                        </div>
-                        <div class="max-h-96 overflow-y-auto">
-                            {% if overdue_invoices_count %}
-                            <a href="{% url 'invoices:list' %}?status=overdue"
-                               class="block p-4 hover:bg-gray-50 border-b border-gray-100">
-                                <div class="flex items-start">
-                                    <div class="flex-shrink-0">
-                                        <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
+                        <div x-show="open"
+                             @click.away="open = false"
+                             x-cloak
+                             x-transition
+                             class="absolute right-0 w-80 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
+                            <div class="p-4 bg-gray-50 border-b border-gray-200">
+                                <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
+                            </div>
+                            <div class="max-h-96 overflow-y-auto">
+                                {% if overdue_invoices_count %}
+                                <a href="{% url 'invoices:list' %}?status=overdue"
+                                   class="block p-4 hover:bg-gray-50 border-b border-gray-100">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
+                                        </div>
+                                        <div class="ml-3 flex-1">
+                                            <p class="text-sm font-medium text-gray-900">
+                                                Factures en retard
+                                            </p>
+                                            <p class="text-xs text-gray-500">
+                                                {{ overdue_invoices_count }} facture{{ overdue_invoices_count|pluralize }} en retard
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div class="ml-3 flex-1">
-                                        <p class="text-sm font-medium text-gray-900">
-                                            Factures en retard
-                                        </p>
-                                        <p class="text-xs text-gray-500">
-                                            {{ overdue_invoices_count }} facture{{ overdue_invoices_count|pluralize }} en retard
-                                        </p>
-                                    </div>
-                                </div>
-                            </a>
-                            {% endif %}
+                                </a>
+                                {% endif %}
 
-                            {% if low_stock_count %}
-                            <a href="{% url 'products:list' %}?low_stock=true"
-                               class="block p-4 hover:bg-gray-50">
-                                <div class="flex items-start">
-                                    <div class="flex-shrink-0">
-                                        <i class="fas fa-box text-yellow-500 text-xl"></i>
+                                {% if low_stock_count %}
+                                <a href="{% url 'products:list' %}?low_stock=true"
+                                   class="block p-4 hover:bg-gray-50">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-box text-yellow-500 text-xl"></i>
+                                        </div>
+                                        <div class="ml-3 flex-1">
+                                            <p class="text-sm font-medium text-gray-900">
+                                                Stock faible
+                                            </p>
+                                            <p class="text-xs text-gray-500">
+                                                {{ low_stock_count }} produit{{ low_stock_count|pluralize }} en stock faible
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div class="ml-3 flex-1">
-                                        <p class="text-sm font-medium text-gray-900">
-                                            Stock faible
-                                        </p>
-                                        <p class="text-xs text-gray-500">
-                                            {{ low_stock_count }} produit{{ low_stock_count|pluralize }} en stock faible
-                                        </p>
-                                    </div>
-                                </div>
-                            </a>
-                            {% endif %}
+                                </a>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
-                </div>
+                    {% endif %}
+
+                    <!-- Quick create -->
+                    <div x-data="{ open: false }" class="relative">
+                        <button @click="open = !open"
+                                class="flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 shadow-lg hover:shadow-xl">
+                            <i class="fas fa-plus mr-2"></i>
+                            <span class="hidden sm:inline">Nouveau</span>
+                        </button>
+
+                        <div x-show="open"
+                             @click.away="open = false"
+                             x-cloak
+                             x-transition
+                             class="absolute right-0 w-56 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
+                            <a href="{% url 'invoices:create' %}"
+                               class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
+                                <i class="fas fa-file-invoice w-5 text-primary-600"></i>
+                                <span class="ml-2">Nouvelle facture</span>
+                            </a>
+                            <a href="{% url 'clients:create' %}"
+                               class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
+                                <i class="fas fa-user-plus w-5 text-primary-600"></i>
+                                <span class="ml-2">Nouveau client</span>
+                            </a>
+                            <a href="{% url 'products:create' %}"
+                               class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
+                                <i class="fas fa-box w-5 text-primary-600"></i>
+                                <span class="ml-2">Nouveau produit</span>
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Bouton de connexion pour les utilisateurs non authentifiés -->
+                    <a href="{% url 'accounts:login' %}"
+                       class="flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 shadow-lg hover:shadow-xl">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Se connecter
+                    </a>
                 {% endif %}
-
-                <!-- Quick create -->
-                <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open"
-                            class="flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 shadow-lg hover:shadow-xl">
-                        <i class="fas fa-plus mr-2"></i>
-                        <span class="hidden sm:inline">Nouveau</span>
-                    </button>
-
-                    <div x-show="open"
-                         @click.away="open = false"
-                         x-cloak
-                         x-transition
-                         class="absolute right-0 w-56 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
-                        <a href="{% url 'invoices:create' %}"
-                           class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
-                            <i class="fas fa-file-invoice w-5 text-primary-600"></i>
-                            <span class="ml-2">Nouvelle facture</span>
-                        </a>
-                        <a href="{% url 'clients:create' %}"
-                           class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">
-                            <i class="fas fa-user-plus w-5 text-primary-600"></i>
-                            <span class="ml-2">Nouveau client</span>
-                        </a>
-                        <a href="{% url 'products:create' %}"
-                           class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
-                            <i class="fas fa-box w-5 text-primary-600"></i>
-                            <span class="ml-2">Nouveau produit</span>
-                        </a>
-                    </div>
-                </div>
             </div>
         </div>
 

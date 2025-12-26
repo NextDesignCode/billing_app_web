@@ -45,18 +45,25 @@ class ClientDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Get related invoices (using string reference to avoid circular import)
-        invoices = self.object.invoices.all().order_by('-created_at')[:10]
-        context['invoices'] = invoices
+        # 1. Récupérer TOUTES les factures pour calculer les stats globales
+        all_invoices = self.object.invoices.all()
 
-        # Calculate statistics
+        # 2. Récupérer SEULEMENT les 10 dernières pour l'affichage dans le tableau
+        # On utilise .order_by() ici pour s'assurer que le slice prend les bonnes
+        recent_invoices = all_invoices.order_by('-created_at')[:10]
+
+        context['invoices'] = recent_invoices
+
+        # 3. Calculer les statistiques sur le QuerySet complet (all_invoices)
+        # et non pas sur le slice (recent_invoices)
         context['stats'] = {
-            'total_invoiced': invoices.aggregate(total=Sum('total'))['total'] or 0,
-            'total_paid': invoices.filter(status='paid').aggregate(total=Sum('total'))['total'] or 0,
-            'pending_invoices': invoices.filter(status='sent').count(),
+            'total_invoiced': all_invoices.aggregate(total=Sum('total'))['total'] or 0,
+            'total_paid': all_invoices.filter(status='paid').aggregate(total=Sum('total'))['total'] or 0,
+            'pending_invoices': all_invoices.filter(status='sent').count(),
         }
 
         return context
+
 
 
 class ClientCreateView(LoginRequiredMixin, CreateView):

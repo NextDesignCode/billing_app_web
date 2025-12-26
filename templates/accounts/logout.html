@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Déconnexion - {{ site_name }}{% endblock %}
+
+{% block page_title %}Déconnexion{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="bg-white shadow-xl rounded-lg border border-gray-200 overflow-hidden">
+        <div class="px-6 py-8 text-center">
+            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 mb-6">
+                <i class="fas fa-sign-out-alt text-primary-600 text-3xl"></i>
+            </div>
+
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">
+                À bientôt !
+            </h3>
+
+            <p class="text-gray-600 mb-8">
+                Vous avez été déconnecté avec succès de votre compte.
+            </p>
+
+            <div class="space-y-4">
+                <a href="{% url 'accounts:login' %}"
+                   class="inline-flex items-center justify-center w-full px-4 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    Se reconnecter
+                </a>
+
+                <a href="/"
+                   class="inline-flex items-center justify-center w-full px-4 py-3 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 shadow hover:shadow-md transition-all duration-300">
+                    <i class="fas fa-home mr-2"></i>
+                    Retour à l'accueil
+                </a>
+            </div>
+        </div>
+
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <p class="text-xs text-gray-500 text-center">
+                Pour des raisons de sécurité, veuillez fermer toutes les fenêtres de votre navigateur.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
