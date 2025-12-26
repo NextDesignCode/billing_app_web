@@ -1,66 +1,370 @@
 {% extends 'base.html' %}
 
-{% block title %}Créer Client - Facturation{% endblock %}
+{% block title %}{% if object %}Modifier{% else %}Nouveau{% endif %} Client - {{ site_name }}{% endblock %}
+{% block page_title %}{% if object %}Modifier le client{% else %}Nouveau client{% endif %}{% endblock %}
+{% block page_subtitle %}{% if object %}Modifiez les informations du client{% else %}Ajoutez un nouveau client à votre portefeuille{% endif %}{% endblock %}
 
 {% block content %}
-<div class="mb-8">
-    <h1 class="text-3xl font-bold text-gray-900">🆕 Créer un Nouveau Client</h1>
-</div>
 
-<div class="bg-white rounded-lg shadow-lg p-8 max-w-4xl">
+<div class="max-w-4xl mx-auto">
+    <!-- Breadcrumb -->
+    <div class="mb-6">
+        <nav class="flex items-center space-x-2 text-sm text-gray-500">
+            <a href="{% url 'clients:list' %}" class="hover:text-gray-700">Clients</a>
+            <i class="fas fa-chevron-right text-xs"></i>
+            <span class="text-gray-900">{% if object %}Modifier{% else %}Nouveau{% endif %}</span>
+        </nav>
+    </div>
+
     <form method="post" class="space-y-6">
         {% csrf_token %}
 
-        <div class="grid grid-cols-2 gap-6">
-            <div>
-                <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Nom du Client *</label>
-                <input type="text" name="name" id="name" required placeholder="Ex: ACME Corporation" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <!-- Basic Information Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="bg-gradient-to-r from-primary-50 to-primary-100 px-6 py-4 border-b border-primary-200">
+                <h2 class="text-lg font-bold text-gray-900 flex items-center">
+                    <div class="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-white"></i>
+                    </div>
+                    Informations générales
+                </h2>
             </div>
-            <div>
-                <label for="tax_id" class="block text-sm font-semibold text-gray-700 mb-2">SIREN/TVA</label>
-                <input type="text" name="tax_id" id="tax_id" placeholder="Ex: FR12345678901" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+
+            <div class="p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Name -->
+                    <div>
+                        <label for="id_name" class="block text-sm font-medium text-gray-700 mb-2">
+                            Nom du client
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Nom complet ou raison sociale</p>
+                    </div>
+
+                    <!-- Company -->
+                    <div>
+                        <label for="id_company" class="block text-sm font-medium text-gray-700 mb-2">
+                            Entreprise
+                        </label>
+                        {{ form.company }}
+                        {% if form.company.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.company.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Email -->
+                    <div>
+                        <label for="id_email" class="block text-sm font-medium text-gray-700 mb-2">
+                            Email
+                            <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-envelope text-gray-400"></i>
+                            </div>
+                            <input type="email"
+                                   name="email"
+                                   id="id_email"
+                                   value="{{ form.email.value|default:'' }}"
+                                   class="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                        </div>
+                        {% if form.email.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Phone -->
+                    <div>
+                        <label for="id_phone" class="block text-sm font-medium text-gray-700 mb-2">
+                            Téléphone
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-phone text-gray-400"></i>
+                            </div>
+                            <input type="tel"
+                                   name="phone"
+                                   id="id_phone"
+                                   value="{{ form.phone.value|default:'' }}"
+                                   class="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                        </div>
+                        {% if form.phone.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Fax -->
+                    <div>
+                        <label for="id_fax" class="block text-sm font-medium text-gray-700 mb-2">
+                            Fax
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-fax text-gray-400"></i>
+                            </div>
+                            <input type="tel"
+                                   name="fax"
+                                   id="id_fax"
+                                   value="{{ form.fax.value|default:'' }}"
+                                   class="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                        </div>
+                        {% if form.fax.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.fax.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Website -->
+                    <div>
+                        <label for="id_website" class="block text-sm font-medium text-gray-700 mb-2">
+                            Site web
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-globe text-gray-400"></i>
+                            </div>
+                            <input type="url"
+                                   name="website"
+                                   id="id_website"
+                                   value="{{ form.website.value|default:'' }}"
+                                   placeholder="https://example.com"
+                                   class="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                        </div>
+                        {% if form.website.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.website.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Contact Person -->
+                <div>
+                    <label for="id_contact_person" class="block text-sm font-medium text-gray-700 mb-2">
+                        Personne de contact
+                    </label>
+                    {{ form.contact_person }}
+                    {% if form.contact_person.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ form.contact_person.errors.0 }}</p>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-6">
-            <div>
-                <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                <input type="email" name="email" id="email" placeholder="contact@example.com" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <!-- Address Information Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
+                <h2 class="text-lg font-bold text-gray-900 flex items-center">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-map-marker-alt text-white"></i>
+                    </div>
+                    Adresse
+                </h2>
             </div>
-            <div>
-                <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">Téléphone</label>
-                <input type="tel" name="phone" id="phone" placeholder="+33123456789" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+
+            <div class="p-6 space-y-6">
+                <!-- Address -->
+                <div>
+                    <label for="id_address" class="block text-sm font-medium text-gray-700 mb-2">
+                        Adresse complète
+                        <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.address }}
+                    {% if form.address.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ form.address.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- City -->
+                    <div>
+                        <label for="id_city" class="block text-sm font-medium text-gray-700 mb-2">
+                            Ville
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.city }}
+                        {% if form.city.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.city.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Postal Code -->
+                    <div>
+                        <label for="id_postal_code" class="block text-sm font-medium text-gray-700 mb-2">
+                            Code postal
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.postal_code }}
+                        {% if form.postal_code.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.postal_code.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Country -->
+                    <div>
+                        <label for="id_country" class="block text-sm font-medium text-gray-700 mb-2">
+                            Pays
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.country }}
+                        {% if form.country.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.country.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div>
-            <label for="address" class="block text-sm font-semibold text-gray-700 mb-2">Adresse</label>
-            <input type="text" name="address" id="address" placeholder="123 Rue de la Paix" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <!-- Business Information Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 border-b border-green-200">
+                <h2 class="text-lg font-bold text-gray-900 flex items-center">
+                    <div class="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-briefcase text-white"></i>
+                    </div>
+                    Informations commerciales
+                </h2>
+            </div>
+
+            <div class="p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Tax ID -->
+                    <div>
+                        <label for="id_tax_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            Numéro de TVA
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-hashtag text-gray-400"></i>
+                            </div>
+                            <input type="text"
+                                   name="tax_id"
+                                   id="id_tax_id"
+                                   value="{{ form.tax_id.value|default:'' }}"
+                                   placeholder="FR12345678901"
+                                   class="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono">
+                        </div>
+                        {% if form.tax_id.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.tax_id.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Payment Terms -->
+                    <div>
+                        <label for="id_payment_terms" class="block text-sm font-medium text-gray-700 mb-2">
+                            Conditions de paiement
+                        </label>
+                        {{ form.payment_terms }}
+                        {% if form.payment_terms.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.payment_terms.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Ex: Net 30, Net 60, etc.</p>
+                    </div>
+                </div>
+
+                <!-- Credit Limit -->
+                <div>
+                    <label for="id_credit_limit" class="block text-sm font-medium text-gray-700 mb-2">
+                        Limite de crédit
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i class="fas fa-euro-sign text-gray-400"></i>
+                        </div>
+                        <input type="number"
+                               name="credit_limit"
+                               id="id_credit_limit"
+                               value="{{ form.credit_limit.value|default:'' }}"
+                               step="0.01"
+                               min="0"
+                               class="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                    </div>
+                    {% if form.credit_limit.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ form.credit_limit.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Montant maximum de crédit autorisé</p>
+                </div>
+            </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-6">
-            <div>
-                <label for="postal_code" class="block text-sm font-semibold text-gray-700 mb-2">Code Postal</label>
-                <input type="text" name="postal_code" id="postal_code" placeholder="75000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <!-- Additional Information Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="bg-gradient-to-r from-purple-50 to-purple-100 px-6 py-4 border-b border-purple-200">
+                <h2 class="text-lg font-bold text-gray-900 flex items-center">
+                    <div class="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-sticky-note text-white"></i>
+                    </div>
+                    Informations complémentaires
+                </h2>
             </div>
-            <div>
-                <label for="city" class="block text-sm font-semibold text-gray-700 mb-2">Ville</label>
-                <input type="text" name="city" id="city" placeholder="Paris" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </div>
-            <div>
-                <label for="country" class="block text-sm font-semibold text-gray-700 mb-2">Pays</label>
-                <input type="text" name="country" id="country" placeholder="France" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+
+            <div class="p-6 space-y-6">
+                <!-- Active Status -->
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-toggle-on text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Statut actif</p>
+                            <p class="text-xs text-gray-500">Le client peut recevoir des factures</p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox"
+                               name="is_active"
+                               id="id_is_active"
+                               {% if form.is_active.value %}checked{% endif %}
+                               class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                    </label>
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label for="id_notes" class="block text-sm font-medium text-gray-700 mb-2">
+                        Notes internes
+                    </label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ form.notes.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Notes privées (non visibles sur les factures)</p>
+                </div>
             </div>
         </div>
 
-        <div class="flex gap-4 pt-6">
-            <button type="submit" class="btn-success py-3 px-6 text-lg">
-                <i class="fas fa-save"></i> Créer le Client
-            </button>
-            <a href="{% url 'core:client_list' %}" class="btn-outline py-3 px-6 text-lg">
-                <i class="fas fa-times"></i> Annuler
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+            <a href="{% url 'clients:list' %}"
+               class="inline-flex items-center px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm">
+                <i class="fas fa-times mr-2"></i>
+                Annuler
             </a>
+
+            <div class="flex items-center space-x-3">
+                {% if object %}
+                <button type="button"
+                        onclick="window.location.href='{% url 'clients:detail' object.pk %}'"
+                        class="inline-flex items-center px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm">
+                    <i class="fas fa-eye mr-2"></i>
+                    Aperçu
+                </button>
+                {% endif %}
+
+                <button type="submit"
+                        class="inline-flex items-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 shadow-lg hover:shadow-xl transition-all">
+                    <i class="fas fa-save mr-2"></i>
+                    {% if object %}Mettre à jour{% else %}Créer le client{% endif %}
+                </button>
+            </div>
         </div>
     </form>
 </div>
+
 {% endblock %}

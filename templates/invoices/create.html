@@ -1,50 +1,400 @@
 {% extends 'base.html' %}
 
-{% block title %}Créer une Facture - Facturation{% endblock %}
+{% block title %}Nouvelle Facture - {{ site_name }}{% endblock %}
+{% block page_title %}Nouvelle facture{% endblock %}
+{% block page_subtitle %}Créez une nouvelle facture pour vos clients{% endblock %}
 
 {% block content %}
-<div class="mb-8">
-    <h1 class="text-3xl font-bold text-gray-900">🆕 Créer une Facture</h1>
-</div>
 
-<div class="bg-white rounded-lg shadow-lg p-8 max-w-2xl">
-    <form method="post" class="space-y-6">
+<div class="max-w-7xl mx-auto" x-data="invoiceForm()">
+    <!-- Breadcrumb -->
+    <div class="mb-6">
+        <nav class="flex items-center space-x-2 text-sm text-gray-500">
+            <a href="{% url 'invoices:list' %}" class="hover:text-gray-700">Factures</a>
+            <i class="fas fa-chevron-right text-xs"></i>
+            <span class="text-gray-900">Nouvelle</span>
+        </nav>
+    </div>
+
+    <form method="post" @submit.prevent="submitForm" class="space-y-6">
         {% csrf_token %}
 
-        <div>
-            <label for="client" class="block text-sm font-semibold text-gray-700 mb-2">Client *</label>
-            <select name="client" id="client" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="">-- Sélectionner un client --</option>
-                {% for client in clients %}
-                    <option value="{{ client.id }}">{{ client.name }} ({{ client.email }})</option>
-                {% endfor %}
-            </select>
-        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
 
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label for="invoice_date" class="block text-sm font-semibold text-gray-700 mb-2">Date de Facture *</label>
-                <input type="date" name="invoice_date" id="invoice_date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <!-- Client Selection -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        Informations client
+                    </h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Client <span class="text-red-500">*</span>
+                            </label>
+                            <div class="flex space-x-2">
+                                <select name="client"
+                                        x-model="clientId"
+                                        required
+                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                                    <option value="">Sélectionner un client...</option>
+                                    {% for client in clients %}
+                                    <option value="{{ client.pk }}">{{ client.name }}{% if client.company %} - {{ client.company }}{% endif %}</option>
+                                    {% endfor %}
+                                </select>
+                                <a href="{% url 'clients:create' %}"
+                                   class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 transition-colors"
+                                   title="Nouveau client">
+                                    <i class="fas fa-plus"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invoice Details -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                        <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-file-invoice text-white"></i>
+                        </div>
+                        Détails de la facture
+                    </h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Date de facture <span class="text-red-500">*</span>
+                            </label>
+                            <input type="date"
+                                   name="invoice_date"
+                                   x-model="invoiceDate"
+                                   required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Date d'échéance <span class="text-red-500">*</span>
+                            </label>
+                            <input type="date"
+                                   name="due_date"
+                                   x-model="dueDate"
+                                   required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Description
+                            </label>
+                            <textarea name="description"
+                                      x-model="description"
+                                      rows="3"
+                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                      placeholder="Description de la facture..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invoice Items -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 border-b border-green-200">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-bold text-gray-900 flex items-center">
+                                <div class="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-list text-white"></i>
+                                </div>
+                                Articles
+                            </h2>
+                            <button type="button"
+                                    @click="addItem"
+                                    class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 shadow-sm">
+                                <i class="fas fa-plus mr-2"></i>
+                                Ajouter un article
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        <template x-if="items.length === 0">
+                            <div class="text-center py-12">
+                                <i class="fas fa-box-open text-gray-300 text-5xl mb-4"></i>
+                                <p class="text-gray-500 mb-4">Aucun article ajouté</p>
+                                <button type="button"
+                                        @click="addItem"
+                                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Ajouter le premier article
+                                </button>
+                            </div>
+                        </template>
+
+                        <div class="space-y-4">
+                            <template x-for="(item, index) in items" :key="index">
+                                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                    <div class="grid grid-cols-12 gap-4">
+                                        <!-- Product/Description -->
+                                        <div class="col-span-12 md:col-span-5">
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Article</label>
+                                            <select x-model="item.product_id"
+                                                    @change="updateItemFromProduct(index)"
+                                                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                                                <option value="">Sélectionner...</option>
+                                                {% for product in products %}
+                                                <option value="{{ product.pk }}"
+                                                        data-price="{{ product.unit_price }}"
+                                                        data-tax="{{ product.tax_rate }}"
+                                                        data-name="{{ product.name }}">
+                                                    {{ product.name }} - {{ product.unit_price }} €
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <!-- Quantity -->
+                                        <div class="col-span-6 md:col-span-2">
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Quantité</label>
+                                            <input type="number"
+                                                   x-model="item.quantity"
+                                                   @input="calculateItemTotal(index)"
+                                                   min="0.01"
+                                                   step="0.01"
+                                                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                                        </div>
+
+                                        <!-- Unit Price -->
+                                        <div class="col-span-6 md:col-span-2">
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Prix Unit.</label>
+                                            <input type="number"
+                                                   x-model="item.unit_price"
+                                                   @input="calculateItemTotal(index)"
+                                                   min="0"
+                                                   step="0.01"
+                                                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                                        </div>
+
+                                        <!-- Tax Rate -->
+                                        <div class="col-span-6 md:col-span-2">
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">TVA %</label>
+                                            <input type="number"
+                                                   x-model="item.tax_rate"
+                                                   @input="calculateItemTotal(index)"
+                                                   min="0"
+                                                   step="0.01"
+                                                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                                        </div>
+
+                                        <!-- Delete Button -->
+                                        <div class="col-span-6 md:col-span-1 flex items-end">
+                                            <button type="button"
+                                                    @click="removeItem(index)"
+                                                    class="w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Item Total -->
+                                    <div class="mt-3 pt-3 border-t border-gray-200 flex justify-between items-center">
+                                        <span class="text-xs text-gray-500">Total de l'article</span>
+                                        <span class="text-sm font-bold text-gray-900" x-text="formatCurrency(item.total)"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-sticky-note text-yellow-600 mr-3"></i>
+                        Notes et conditions
+                    </h2>
+
+                    <textarea name="notes"
+                              x-model="notes"
+                              rows="4"
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                              placeholder="Notes visibles sur la facture (conditions de paiement, remerciements, etc.)"></textarea>
+                </div>
             </div>
-            <div>
-                <label for="due_date" class="block text-sm font-semibold text-gray-700 mb-2">Date d'Échéance *</label>
-                <input type="date" name="due_date" id="due_date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+
+            <!-- Sidebar - Summary -->
+            <div class="lg:col-span-1">
+                <div class="sticky top-24 space-y-6">
+
+                    <!-- Totals Summary -->
+                    <div class="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border border-primary-200 p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Récapitulatif</h3>
+
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Sous-total HT</span>
+                                <span class="font-medium text-gray-900" x-text="formatCurrency(subtotal)"></span>
+                            </div>
+
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">TVA</span>
+                                <span class="font-medium text-gray-900" x-text="formatCurrency(taxAmount)"></span>
+                            </div>
+
+                            <div class="pt-3 border-t-2 border-primary-200 flex justify-between">
+                                <span class="text-lg font-bold text-gray-900">Total TTC</span>
+                                <span class="text-2xl font-bold text-primary-600" x-text="formatCurrency(total)"></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 p-4 bg-white bg-opacity-70 rounded-lg">
+                            <div class="flex items-center justify-between text-sm mb-2">
+                                <span class="text-gray-600">Nombre d'articles</span>
+                                <span class="font-medium text-gray-900" x-text="items.length"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Info -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4">Informations</h3>
+
+                        <div class="space-y-3 text-sm">
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-blue-500 mt-0.5 mr-2"></i>
+                                <p class="text-gray-600">Les factures sont automatiquement numérotées</p>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-save text-green-500 mt-0.5 mr-2"></i>
+                                <p class="text-gray-600">Vous pouvez sauvegarder comme brouillon</p>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-envelope text-purple-500 mt-0.5 mr-2"></i>
+                                <p class="text-gray-600">Envoyez la facture directement par email</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="space-y-3">
+                        <button type="submit"
+                                name="status"
+                                value="sent"
+                                class="w-full flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 shadow-lg hover:shadow-xl transition-all">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Créer et envoyer
+                        </button>
+
+                        <button type="submit"
+                                name="status"
+                                value="draft"
+                                class="w-full flex items-center justify-center px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm">
+                            <i class="fas fa-save mr-2"></i>
+                            Sauvegarder comme brouillon
+                        </button>
+
+                        <a href="{% url 'invoices:list' %}"
+                           class="w-full flex items-center justify-center px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm">
+                            <i class="fas fa-times mr-2"></i>
+                            Annuler
+                        </a>
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <div>
-            <label for="description" class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
-            <textarea name="description" id="description" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
-        </div>
-
-        <div class="flex gap-4 pt-6">
-            <button type="submit" class="btn-primary py-3 px-6 text-lg">
-                <i class="fas fa-save"></i> Créer la Facture
-            </button>
-            <a href="{% url 'core:invoice_list' %}" class="btn-outline py-3 px-6 text-lg">
-                <i class="fas fa-arrow-left"></i> Annuler
-            </a>
         </div>
     </form>
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function invoiceForm() {
+    return {
+        clientId: '',
+        invoiceDate: new Date().toISOString().split('T')[0],
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        description: '',
+        notes: '',
+        items: [],
+
+        get subtotal() {
+            return this.items.reduce((sum, item) => {
+                return sum + (parseFloat(item.quantity) * parseFloat(item.unit_price) || 0);
+            }, 0);
+        },
+
+        get taxAmount() {
+            return this.items.reduce((sum, item) => {
+                const itemSubtotal = parseFloat(item.quantity) * parseFloat(item.unit_price) || 0;
+                return sum + (itemSubtotal * parseFloat(item.tax_rate) / 100 || 0);
+            }, 0);
+        },
+
+        get total() {
+            return this.subtotal + this.taxAmount;
+        },
+
+        addItem() {
+            this.items.push({
+                product_id: '',
+                description: '',
+                quantity: 1,
+                unit_price: 0,
+                tax_rate: 20,
+                total: 0
+            });
+        },
+
+        removeItem(index) {
+            this.items.splice(index, 1);
+        },
+
+        calculateItemTotal(index) {
+            const item = this.items[index];
+            const subtotal = parseFloat(item.quantity) * parseFloat(item.unit_price) || 0;
+            const tax = subtotal * parseFloat(item.tax_rate) / 100 || 0;
+            item.total = subtotal + tax;
+        },
+
+        updateItemFromProduct(index) {
+            const item = this.items[index];
+            if (item.product_id) {
+                const select = event.target;
+                const option = select.options[select.selectedIndex];
+                item.unit_price = option.dataset.price || 0;
+                item.tax_rate = option.dataset.tax || 20;
+                item.description = option.dataset.name || '';
+                this.calculateItemTotal(index);
+            }
+        },
+
+        formatCurrency(value) {
+            return new Intl.NumberFormat('fr-FR', {
+                style: 'currency',
+                currency: 'EUR'
+            }).format(value || 0);
+        },
+
+        submitForm(event) {
+            if (this.items.length === 0) {
+                alert('Veuillez ajouter au moins un article à la facture');
+                return false;
+            }
+
+            if (!this.clientId) {
+                alert('Veuillez sélectionner un client');
+                return false;
+            }
+
+            // Form will submit normally
+            event.target.submit();
+        }
+    }
+}
+</script>
 {% endblock %}
