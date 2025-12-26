@@ -29,11 +29,11 @@
                     </div>
                     <h1 class="text-2xl font-bold text-gray-800">💼 Facturation Pro</h1>
                 </div>
-                
+
                 <div class="flex items-center gap-4">
                     {% if user.is_authenticated %}
                         <span class="text-gray-700 font-medium">👤 {{ user.username }}</span>
-                        <a href="{% url 'core:logout' %}" class="btn-danger py-2">
+                        <a href="{% url 'accounts:logout' %}" class="btn-danger py-2">
                             <i class="fas fa-sign-out-alt"></i> Déconnexion
                         </a>
                     {% endif %}
@@ -47,13 +47,13 @@
         <aside class="w-64 bg-gray-900 text-white overflow-y-auto hidden md:block">
             <nav class="p-6 space-y-2">
                 <div class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-6">MENU PRINCIPAL</div>
-                
+
                 <a href="{% url 'core:dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                     <i class="fas fa-th-large w-5"></i> Dashboard
                 </a>
-                
+
                 <div class="text-xs font-bold uppercase tracking-wider text-gray-400 mt-6 mb-3">DOCUMENTS</div>
-                
+
                 <div class="space-y-1">
                     <a href="{% url 'core:invoice_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                         <i class="fas fa-receipt w-5"></i> Factures
@@ -68,9 +68,9 @@
                         <i class="fas fa-shopping-cart w-5"></i> Commandes
                     </a>
                 </div>
-                
+
                 <div class="text-xs font-bold uppercase tracking-wider text-gray-400 mt-6 mb-3">GESTION</div>
-                
+
                 <a href="{% url 'core:client_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                     <i class="fas fa-users w-5"></i> Clients
                 </a>
@@ -83,9 +83,9 @@
                 <a href="{% url 'core:payment_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                     <i class="fas fa-credit-card w-5"></i> Paiements
                 </a>
-                
+
                 <div class="text-xs font-bold uppercase tracking-wider text-gray-400 mt-6 mb-3">UTILITAIRES</div>
-                
+
                 <a href="{% url 'core:reports' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                     <i class="fas fa-chart-bar w-5"></i> Rapports
                 </a>
