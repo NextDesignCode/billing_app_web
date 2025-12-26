@@ -1,283 +1,130 @@
-<!DOCTYPE html>
-<html lang="fr" class="h-full">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - {{ site_name }}</title>
+{% extends "base.html" %}
+{% load static %}
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+{% block title %}Connexion - {{ site_name }}{% endblock %}
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .animate-float {
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-    </style>
-</head>
-<body class="h-full">
-    <div class="min-h-full flex">
-
-        <!-- Left Panel - Branding -->
-        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 relative overflow-hidden">
-            <!-- Animated Background -->
-            <div class="absolute inset-0 opacity-10">
-                <div class="absolute top-20 left-20 w-72 h-72 bg-white rounded-full animate-float"></div>
-                <div class="absolute bottom-20 right-20 w-96 h-96 bg-white rounded-full animate-float" style="animation-delay: 1s;"></div>
-                <div class="absolute top-1/2 left-1/2 w-80 h-80 bg-white rounded-full animate-float" style="animation-delay: 2s;"></div>
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 animate-slide-in">
+        <div class="text-center">
+            <div class="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-primary-700 shadow-lg">
+                <i class="fas fa-file-invoice-dollar text-white text-2xl"></i>
             </div>
-
-            <!-- Content -->
-            <div class="relative z-10 flex flex-col justify-center px-12 py-12">
-                <!-- Logo -->
-                <div class="mb-12">
-                    <div class="flex items-center space-x-4 mb-6">
-                        <div class="flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-2xl">
-                            <i class="fas fa-file-invoice-dollar text-primary-600 text-3xl"></i>
-                        </div>
-                        <div>
-                            <h1 class="text-3xl font-bold text-white">Facturation Pro</h1>
-                            <p class="text-primary-200">Gestion simplifiée</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Features -->
-                <div class="space-y-8">
-                    <div class="flex items-start space-x-4">
-                        <div class="flex-shrink-0">
-                            <div class="flex items-center justify-center w-12 h-12 rounded-xl glass-effect">
-                                <i class="fas fa-bolt text-yellow-300 text-xl"></i>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-white mb-1">
-                                Rapide et efficace
-                            </h3>
-                            <p class="text-primary-200 text-sm">
-                                Créez vos factures en quelques clics et gagnez un temps précieux
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start space-x-4">
-                        <div class="flex-shrink-0">
-                            <div class="flex items-center justify-center w-12 h-12 rounded-xl glass-effect">
-                                <i class="fas fa-chart-line text-green-300 text-xl"></i>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-white mb-1">
-                                Suivi en temps réel
-                            </h3>
-                            <p class="text-primary-200 text-sm">
-                                Suivez vos paiements et votre trésorerie en un coup d'œil
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start space-x-4">
-                        <div class="flex-shrink-0">
-                            <div class="flex items-center justify-center w-12 h-12 rounded-xl glass-effect">
-                                <i class="fas fa-shield-alt text-blue-300 text-xl"></i>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-white mb-1">
-                                Sécurisé et fiable
-                            </h3>
-                            <p class="text-primary-200 text-sm">
-                                Vos données sont protégées et sauvegardées automatiquement
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stats -->
-                <div class="mt-12 grid grid-cols-3 gap-6">
-                    <div class="text-center">
-                        <div class="text-3xl font-bold text-white">10K+</div>
-                        <div class="text-sm text-primary-200">Factures créées</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-3xl font-bold text-white">500+</div>
-                        <div class="text-sm text-primary-200">Entreprises</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-3xl font-bold text-white">99.9%</div>
-                        <div class="text-sm text-primary-200">Disponibilité</div>
-                    </div>
-                </div>
-            </div>
+            <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+                Facturation Pro
+            </h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Connectez-vous à votre espace professionnel
+            </p>
         </div>
 
-        <!-- Right Panel - Login Form -->
-        <div class="flex-1 flex flex-col justify-center px-4 py-12 sm:px-6 lg:px-20 xl:px-24 bg-white">
-            <div class="mx-auto w-full max-w-md">
+        <div class="bg-white py-8 px-6 shadow-xl rounded-lg border border-gray-200">
+            <form class="space-y-6" method="POST" action="{% url 'accounts:login' %}">
+                {% csrf_token %}
 
-                <!-- Mobile Logo -->
-                <div class="lg:hidden text-center mb-8">
-                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-lg mb-4">
-                        <i class="fas fa-file-invoice-dollar text-white text-2xl"></i>
-                    </div>
-                    <h1 class="text-2xl font-bold text-gray-900">Facturation Pro</h1>
-                </div>
-
-                <!-- Header -->
-                <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-2">
-                        Bon retour !
-                    </h2>
-                    <p class="text-gray-600">
-                        Connectez-vous à votre compte pour continuer
-                    </p>
-                </div>
-
-                <!-- Messages -->
-                {% if messages %}
-                <div class="mb-6 space-y-3">
-                    {% for message in messages %}
-                    <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 border border-red-200 text-red-800{% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %}">
-                        <div class="flex items-center">
-                            <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %} mr-3"></i>
-                            <span class="text-sm">{{ message }}</span>
+                {% if form.non_field_errors %}
+                <div class="bg-red-50 border-l-4 border-red-500 p-4">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle text-red-500 mr-3"></i>
+                        <div class="text-sm text-red-700">
+                            {{ form.non_field_errors }}
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
                 {% endif %}
 
-                <!-- Login Form -->
-                <form method="post" action="{% url 'accounts:login' %}" class="space-y-6">
-                    {% csrf_token %}
-
-                    <!-- Username Field -->
-                    <div>
-                        <label for="id_username" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-user text-gray-400 mr-2"></i>
-                            Nom d'utilisateur
-                        </label>
-                        <div class="relative">
-                            <input type="text"
-                                   name="username"
-                                   id="id_username"
-                                   required
-                                   autofocus
-                                   class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all
-                                          {% if form.username.errors %}border-red-500{% endif %}"
-                                   placeholder="Entrez votre nom d'utilisateur">
-                            {% if form.username.errors %}
-                            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                                <i class="fas fa-exclamation-circle text-red-500"></i>
-                            </div>
-                            {% endif %}
-                        </div>
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">
+                        <i class="fas fa-user mr-2"></i>Nom d'utilisateur
+                    </label>
+                    <div class="mt-1">
+                        <input id="username" name="username" type="text" required
+                               class="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm transition-all"
+                               placeholder="Entrez votre nom d'utilisateur">
                         {% if form.username.errors %}
-                        <p class="mt-2 text-sm text-red-600">
-                            {{ form.username.errors.0 }}
-                        </p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.username.errors }}</p>
                         {% endif %}
                     </div>
+                </div>
 
-                    <!-- Password Field -->
-                    <div>
-                        <label for="id_password" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-lock text-gray-400 mr-2"></i>
-                            Mot de passe
-                        </label>
-                        <div class="relative">
-                            <input type="password"
-                                   name="password"
-                                   id="id_password"
-                                   required
-                                   class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all
-                                          {% if form.password.errors %}border-red-500{% endif %}"
-                                   placeholder="Entrez votre mot de passe">
-                            {% if form.password.errors %}
-                            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                                <i class="fas fa-exclamation-circle text-red-500"></i>
-                            </div>
-                            {% endif %}
-                        </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">
+                        <i class="fas fa-lock mr-2"></i>Mot de passe
+                    </label>
+                    <div class="mt-1 relative">
+                        <input id="password" name="password" type="password" required
+                               class="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm transition-all"
+                               placeholder="Entrez votre mot de passe">
+                        <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <i id="toggleIcon" class="fas fa-eye text-gray-400 hover:text-gray-600"></i>
+                        </button>
                         {% if form.password.errors %}
-                        <p class="mt-2 text-sm text-red-600">
-                            {{ form.password.errors.0 }}
-                        </p>
+                        <p class="mt-1 text-sm text-red-600">{{ form.password.errors }}</p>
                         {% endif %}
                     </div>
+                </div>
 
-                    <!-- Remember Me & Forgot Password -->
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <input type="checkbox"
-                                   id="remember-me"
-                                   name="remember-me"
-                                   class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
-                            <label for="remember-me" class="ml-2 block text-sm text-gray-700">
-                                Se souvenir de moi
-                            </label>
-                        </div>
-                        <a href="#" class="text-sm font-medium text-primary-600 hover:text-primary-700">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember_me" name="remember_me" type="checkbox"
+                               class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        <label for="remember_me" class="ml-2 block text-sm text-gray-700">
+                            Se souvenir de moi
+                        </label>
+                    </div>
+
+                    <div class="text-sm">
+                        <a href="#" class="font-medium text-primary-600 hover:text-primary-500 transition-colors">
                             Mot de passe oublié ?
                         </a>
                     </div>
+                </div>
 
-                    <!-- Submit Button -->
+                <div>
                     <button type="submit"
-                            class="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 shadow-lg hover:shadow-xl transition-all">
-                        <i class="fas fa-sign-in-alt mr-2"></i>
+                            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 shadow-lg hover:shadow-xl transition-all duration-300">
+                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                            <i class="fas fa-sign-in-alt text-primary-300 group-hover:text-primary-200"></i>
+                        </span>
                         Se connecter
                     </button>
-                </form>
-
-                <!-- Divider -->
-                <div class="mt-8">
-                    <div class="relative">
-                        <div class="absolute inset-0 flex items-center">
-                            <div class="w-full border-t border-gray-300"></div>
-                        </div>
-                        <div class="relative flex justify-center text-sm">
-                            <span class="px-4 bg-white text-gray-500">
-                                Nouveau sur la plateforme ?
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Sign Up Link -->
-                    <div class="mt-6 text-center">
-                        <a href="#"
-                           class="inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-700">
-                            Créer un compte
-                            <i class="fas fa-arrow-right ml-2"></i>
-                        </a>
-                    </div>
                 </div>
 
-                <!-- Footer -->
-                <div class="mt-8 text-center">
-                    <p class="text-xs text-gray-500">
-                        © {{ current_year }} {{ site_name }}. Tous droits réservés.
+                <div class="text-center">
+                    <p class="text-sm text-gray-600">
+                        Nouveau sur Facturation Pro ?
+                        <a href="#" class="font-medium text-primary-600 hover:text-primary-500 transition-colors">
+                            Contactez l'administrateur
+                        </a>
                     </p>
                 </div>
-            </div>
+            </form>
+        </div>
+
+        <div class="text-center">
+            <p class="text-xs text-gray-500">
+                © {{ current_year }} {{ site_name }}. Tous droits réservés.
+                <br>
+                Version {{ site_version }}
+            </p>
         </div>
     </div>
-</body>
-</html>
+</div>
+
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('toggleIcon');
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
+</script>
+{% endblock %}
