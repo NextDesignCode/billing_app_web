@@ -1,85 +1,240 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Proformas - Facturation{% endblock %}
+{% block title %}Devis Proforma - {{ site_name }}{% endblock %}
 
 {% block content %}
-<div class="mb-8">
-    <div class="flex justify-between items-center">
-        <h1 class="text-4xl font-bold text-gray-900">📋 Proformas</h1>
-        <a href="{% url 'core:proforma_create' %}" class="btn-success py-3 px-6 text-lg">
-            <i class="fas fa-file-invoice"></i> Nouvelle Proforma
+<div class="container mx-auto px-4 py-8">
+    <!-- En-tête -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">Devis Proforma</h1>
+            <p class="text-gray-600 mt-1">Gérez vos factures proforma</p>
+        </div>
+        <a href="{% url 'proforma:create' %}" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nouveau Proforma
         </a>
     </div>
-</div>
 
-<!-- Search -->
-<div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-    <form method="get" class="flex gap-4">
-        <input type="text" name="search" placeholder="Chercher par client..." value="{{ request.GET.search }}" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-        <button type="submit" class="btn-primary py-2 px-4">
-            <i class="fas fa-search"></i> Rechercher
-        </button>
-    </form>
-</div>
-
-<!-- Proformas Table -->
-<div class="bg-white rounded-lg shadow-lg overflow-hidden">
-    {% if proformas %}
-        <table class="w-full">
-            <thead class="bg-gray-100 border-b-2 border-gray-300">
-                <tr>
-                    <th class="text-left py-4 px-6">Numéro</th>
-                    <th class="text-left py-4 px-6">Client</th>
-                    <th class="text-center py-4 px-6">Date</th>
-                    <th class="text-center py-4 px-6">Validité</th>
-                    <th class="text-right py-4 px-6">Montant</th>
-                    <th class="text-center py-4 px-6">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for proforma in proformas %}
-                <tr class="border-b hover:bg-gray-50 transition">
-                    <td class="py-4 px-6">
-                        <a href="{% url 'core:proforma_detail' proforma.pk %}" class="font-bold text-blue-600 hover:underline">
-                            {{ proforma.proforma_number }}
-                        </a>
-                    </td>
-                    <td class="py-4 px-6">
-                        <strong>{{ proforma.client.name }}</strong>
-                        <p class="text-sm text-gray-600">{{ proforma.client.email }}</p>
-                    </td>
-                    <td class="py-4 px-6 text-center">{{ proforma.proforma_date|date:"d/m/Y" }}</td>
-                    <td class="py-4 px-6 text-center">
-                        {% if proforma.validity_date >= today %}
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
-                                <i class="fas fa-check-circle"></i> Valide
-                            </span>
-                        {% else %}
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">
-                                <i class="fas fa-times-circle"></i> Expirée
-                            </span>
-                        {% endif %}
-                    </td>
-                    <td class="py-4 px-6 text-right font-bold text-lg">{{ proforma.total|floatformat:2 }} €</td>
-                    <td class="py-4 px-6 text-center">
-                        <div class="flex gap-2 justify-center">
-                            <a href="{% url 'core:proforma_detail' proforma.pk %}" class="text-blue-600 hover:text-blue-900" title="Voir">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <div class="p-8 text-center">
-            <i class="fas fa-file-invoice text-5xl text-gray-300 mb-4"></i>
-            <p class="text-gray-600 text-lg">Aucune proforma trouvée</p>
-            <a href="{% url 'core:proforma_create' %}" class="btn-success py-2 px-4 inline-block mt-4">
-                <i class="fas fa-file-invoice"></i> Créer une nouvelle proforma
+    <!-- Barre de recherche et filtres -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <form method="get" class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ request.GET.search }}"
+                    placeholder="Rechercher par numéro ou client..."
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+            </div>
+            <select name="status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                <option value="">Tous les statuts</option>
+                <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>Brouillon</option>
+                <option value="sent" {% if request.GET.status == 'sent' %}selected{% endif %}>Envoyé</option>
+                <option value="accepted" {% if request.GET.status == 'accepted' %}selected{% endif %}>Accepté</option>
+                <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Refusé</option>
+                <option value="expired" {% if request.GET.status == 'expired' %}selected{% endif %}>Expiré</option>
+            </select>
+            <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium transition">
+                Filtrer
+            </button>
+            {% if request.GET.search or request.GET.status %}
+            <a href="{% url 'proforma:list' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium transition">
+                Réinitialiser
             </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Total Proformas</p>
+                    <p class="text-3xl font-bold text-gray-800 mt-2">{{ proformas|length }}</p>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+            </div>
         </div>
-    {% endif %}
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Envoyés</p>
+                    <p class="text-3xl font-bold text-blue-600 mt-2">{{ proformas|length }}</p>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Acceptés</p>
+                    <p class="text-3xl font-bold text-green-600 mt-2">0</p>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Expirés</p>
+                    <p class="text-3xl font-bold text-red-600 mt-2">0</p>
+                </div>
+                <div class="bg-red-100 p-3 rounded-full">
+                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table des proformas -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        {% if proformas %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            N° Proforma
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Client
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date émission
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Expiration
+                        </th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Montant
+                        </th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Statut
+                        </th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for proforma in proformas %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-purple-600">
+                                <a href="{% url 'proforma:detail' proforma.pk %}" class="hover:text-purple-800">
+                                    {{ proforma.proforma_number }}
+                                </a>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <span class="text-purple-600 font-bold">{{ proforma.client.name|first|upper }}</span>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ proforma.client.name }}</div>
+                                    <div class="text-sm text-gray-500">{{ proforma.client.company|default:"—" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ proforma.issue_date|date:"d/m/Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ proforma.expiry_date|date:"d/m/Y" }}</div>
+                            {% if proforma.expiry_date < today %}
+                            <div class="text-xs text-red-600 font-medium">Expiré</div>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <div class="text-sm font-bold text-gray-900">{{ proforma.total|floatformat:2 }} €</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            {% if proforma.status == 'draft' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                Brouillon
+                            </span>
+                            {% elif proforma.status == 'sent' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                Envoyé
+                            </span>
+                            {% elif proforma.status == 'accepted' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Accepté
+                            </span>
+                            {% elif proforma.status == 'rejected' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                Refusé
+                            </span>
+                            {% elif proforma.status == 'expired' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
+                                Expiré
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="{% url 'proforma:detail' proforma.pk %}" class="text-blue-600 hover:text-blue-900 mr-3">Voir</a>
+                            <a href="{% url 'proforma:edit' proforma.pk %}" class="text-green-600 hover:text-green-900 mr-3">Modifier</a>
+                            <a href="{% url 'proforma:delete' proforma.pk %}" class="text-red-600 hover:text-red-900">Supprimer</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Affichage de <span class="font-medium">{{ page_obj.start_index }}</span> à
+                        <span class="font-medium">{{ page_obj.end_index }}</span> sur
+                        <span class="font-medium">{{ page_obj.paginator.count }}</span> résultats
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune proforma</h3>
+            <p class="mt-1 text-sm text-gray-500">Commencez par créer un nouveau devis proforma.</p>
+            <div class="mt-6">
+                <a href="{% url 'proforma:create' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">
+                    Créer une proforma
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

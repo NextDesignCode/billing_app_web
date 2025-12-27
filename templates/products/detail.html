@@ -1,60 +1,175 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ product.name }}{% endblock %}
+{% block title %}{{ product.name }} - {{ site_name }}{% endblock %}
+{% block page_title %}{{ product.name }}{% endblock %}
+
+{% block page_subtitle %}
+<div class="flex items-center space-x-2 mt-1">
+    {% if product.is_active %}
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            <i class="fas fa-check-circle mr-1"></i> Actif
+        </span>
+    {% else %}
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            <i class="fas fa-ban mr-1"></i> Inactif
+        </span>
+    {% endif %}
+    {% if product.category %}
+        <span class="text-sm text-gray-500">•</span>
+        <span class="text-sm text-gray-500">{{ product.category }}</span>
+    {% endif %}
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <a href="{% url 'core:product_list' %}" class="text-blue-600 hover:text-blue-900 mb-6">← Retour aux produits</a>
-    
-    <div class="bg-white rounded-lg shadow p-6">
-        <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ product.name }}</h1>
-        
-        <div class="grid grid-cols-2 gap-6 mb-6">
-            <div>
-                <p class="text-gray-600">SKU</p>
-                <p class="text-2xl font-bold text-gray-900">{{ product.sku }}</p>
-            </div>
-            <div>
-                <p class="text-gray-600">Catégorie</p>
-                <p class="text-2xl font-bold text-gray-900">{{ product.category }}</p>
-            </div>
+
+<!-- ACTION BAR -->
+<div class="mb-6 flex items-center justify-between">
+    <a href="{% url 'products:list' %}" class="text-sm font-medium text-gray-600 hover:text-gray-900">
+        <i class="fas fa-arrow-left mr-2"></i> Retour à la liste
+    </a>
+
+    <div class="flex space-x-3">
+        <a href="{% url 'products:edit' product.pk %}" class="btn-secondary">
+            <i class="fas fa-edit mr-2"></i> Modifier
+        </a>
+        <button onclick="confirmDelete()" class="btn-danger">
+            <i class="fas fa-trash mr-2"></i> Supprimer
+        </button>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+<!-- ================= MAIN ================= -->
+<div class="lg:col-span-2 space-y-6">
+
+<!-- PRODUCT INFO -->
+<div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+    <div class="grid md:grid-cols-2">
+        <div class="h-96 bg-gray-100 flex items-center justify-center">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" class="w-full h-full object-cover">
+            {% else %}
+                <i class="fas fa-box text-6xl text-gray-400"></i>
+            {% endif %}
         </div>
 
-        <div class="grid grid-cols-2 gap-6 mb-6">
-            <div>
-                <p class="text-gray-600">Prix unitaire</p>
-                <p class="text-2xl font-bold text-gray-900">{{ product.unit_price }} €</p>
-            </div>
-            <div>
-                <p class="text-gray-600">Coût unitaire</p>
-                <p class="text-2xl font-bold text-gray-900">{{ product.cost_price }} €</p>
-            </div>
+        <div class="p-6">
+            <h2 class="text-2xl font-bold mb-3">{{ product.name }}</h2>
+            {% if product.description %}
+                <p class="text-gray-700">{{ product.description }}</p>
+            {% endif %}
         </div>
+    </div>
+</div>
 
-        <div class="grid grid-cols-2 gap-6 mb-6">
-            <div>
-                <p class="text-gray-600">Stock actuel</p>
-                <p class="text-2xl font-bold 
-                    {% if product.quantity_in_stock <= product.reorder_level %}text-red-600{% else %}text-green-600{% endif %}">
-                    {{ product.quantity_in_stock }}
-                </p>
-            </div>
-            <div>
-                <p class="text-gray-600">Niveau réapprovisionnement</p>
-                <p class="text-2xl font-bold text-gray-900">{{ product.reorder_level }}</p>
-            </div>
-        </div>
+<!-- PRICING + STOCK -->
+<div class="grid md:grid-cols-2 gap-6">
 
+<!-- PRICING -->
+<div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+    <h3 class="text-lg font-bold mb-4">
+        <i class="fas fa-euro-sign mr-2 text-blue-600"></i> Tarification
+    </h3>
+
+    <div class="space-y-4">
         <div>
-            <p class="text-gray-600">Taux TVA</p>
-            <p class="text-2xl font-bold text-gray-900">{{ product.tax_rate }}%</p>
+            <p class="text-xs text-blue-700">Prix HT</p>
+            <p class="text-3xl font-bold">{{ product.unit_price|floatformat:2 }} €</p>
         </div>
 
-        {% if product.current_stock <= product.reorder_level %}
-        <div class="mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-            ⚠️ Stock faible - Réapprovisionnement recommandé
+        <div class="pt-4 border-t">
+            <div class="flex justify-between text-sm">
+                <span>TVA ({{ product.tax_rate }}%)</span>
+                <span>{{ product.tax_amount|floatformat:2 }} €</span>
+            </div>
+            <div class="flex justify-between font-bold text-lg">
+                <span>Prix TTC</span>
+                <span>{{ product.price_ttc|floatformat:2 }} €</span>
+            </div>
+        </div>
+
+        {% if product.cost_price > 0 %}
+        <div class="pt-4 border-t">
+            <div class="flex justify-between text-sm">
+                <span>Prix d'achat</span>
+                <span>{{ product.cost_price|floatformat:2 }} €</span>
+            </div>
+            <div class="flex justify-between font-bold text-green-600">
+                <span>Marge</span>
+                <span>+{{ product.margin_percent|floatformat:0 }}%</span>
+            </div>
         </div>
         {% endif %}
     </div>
 </div>
+
+<!-- STOCK -->
+<div class="bg-green-50 border border-green-200 rounded-xl p-6">
+    <h3 class="text-lg font-bold mb-4">
+        <i class="fas fa-warehouse mr-2 text-green-600"></i> Stock
+    </h3>
+
+    <p class="text-3xl font-bold mb-4">
+        {{ product.quantity_in_stock }} {{ product.unit }}
+    </p>
+
+    <div class="pt-4 border-t">
+        <div class="flex justify-between text-sm mb-2">
+            <span>Seuil</span>
+            <span>{{ product.reorder_level }}</span>
+        </div>
+
+        <!-- PROGRESS BAR (SEUL widthratio AUTORISÉ) -->
+        <div class="w-full bg-green-200 rounded-full h-3">
+            <div class="h-3 rounded-full bg-green-600"
+                 style="width:{% widthratio product.quantity_in_stock product.reorder_level 100 %}%">
+            </div>
+        </div>
+    </div>
+
+    {% if product.cost_price > 0 %}
+    <div class="pt-4 border-t">
+        <div class="flex justify-between font-bold">
+            <span>Valeur du stock</span>
+            <span>{{ product.stock_value|floatformat:2 }} €</span>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+</div>
+</div>
+
+<!-- ================= SIDEBAR ================= -->
+<div class="space-y-6">
+
+<div class="bg-white rounded-xl shadow-sm border p-6">
+    <h3 class="font-bold mb-4">Informations</h3>
+    <div class="text-sm space-y-2">
+        <div class="flex justify-between">
+            <span>Créé le</span>
+            <span>{{ product.created_at|date:"d/m/Y" }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span>Modifié le</span>
+            <span>{{ product.updated_at|date:"d/m/Y" }}</span>
+        </div>
+    </div>
+</div>
+
+</div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete() {
+    if (confirm("Confirmer la suppression ?")) {
+        window.location.href = "{% url 'products:delete' product.pk %}";
+    }
+}
+</script>
 {% endblock %}

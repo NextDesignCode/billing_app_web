@@ -1,90 +1,227 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Bons de Livraison - Facturation{% endblock %}
+{% block title %}Bons de Livraison - {{ site_name }}{% endblock %}
 
 {% block content %}
-<div class="mb-8">
-    <div class="flex justify-between items-center">
-        <h1 class="text-4xl font-bold text-gray-900">🚚 Bons de Livraison</h1>
-        <a href="{% url 'core:delivery_create' %}" class="btn-success py-3 px-6 text-lg">
-            <i class="fas fa-truck"></i> Nouveau Bon
+<div class="container mx-auto px-4 py-8">
+    <!-- En-tête -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">Bons de Livraison</h1>
+            <p class="text-gray-600 mt-1">Gérez les livraisons de vos commandes</p>
+        </div>
+        <a href="{% url 'delivery:create' %}" class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-medium transition flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nouveau Bon de Livraison
         </a>
     </div>
-</div>
 
-<!-- Search -->
-<div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-    <form method="get" class="flex gap-4">
-        <input type="text" name="search" placeholder="Chercher par client..." value="{{ request.GET.search }}" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-        <select name="status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-            <option value="">Tous les statuts</option>
-            <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>En attente</option>
-            <option value="delivered" {% if request.GET.status == 'delivered' %}selected{% endif %}>Livrée</option>
-        </select>
-        <button type="submit" class="btn-primary py-2 px-4">
-            <i class="fas fa-search"></i> Rechercher
-        </button>
-    </form>
-</div>
-
-<!-- Deliveries Table -->
-<div class="bg-white rounded-lg shadow-lg overflow-hidden">
-    {% if deliveries %}
-        <table class="w-full">
-            <thead class="bg-gray-100 border-b-2 border-gray-300">
-                <tr>
-                    <th class="text-left py-4 px-6">Numéro</th>
-                    <th class="text-left py-4 px-6">Client</th>
-                    <th class="text-center py-4 px-6">Date</th>
-                    <th class="text-left py-4 px-6">Lieu</th>
-                    <th class="text-center py-4 px-6">Statut</th>
-                    <th class="text-center py-4 px-6">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for delivery in deliveries %}
-                <tr class="border-b hover:bg-gray-50 transition">
-                    <td class="py-4 px-6">
-                        <a href="{% url 'core:delivery_detail' delivery.pk %}" class="font-bold text-blue-600 hover:underline">
-                            {{ delivery.delivery_number }}
-                        </a>
-                    </td>
-                    <td class="py-4 px-6">
-                        <strong>{{ delivery.client.name }}</strong>
-                        <p class="text-sm text-gray-600">{{ delivery.client.email }}</p>
-                    </td>
-                    <td class="py-4 px-6 text-center">{{ delivery.delivery_date|date:"d/m/Y" }}</td>
-                    <td class="py-4 px-6 text-sm text-gray-600">{{ delivery.location }}</td>
-                    <td class="py-4 px-6 text-center">
-                        {% if delivery.status == 'delivered' %}
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
-                                <i class="fas fa-check-circle"></i> Livrée
-                            </span>
-                        {% else %}
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800">
-                                <i class="fas fa-clock"></i> En attente
-                            </span>
-                        {% endif %}
-                    </td>
-                    <td class="py-4 px-6 text-center">
-                        <div class="flex gap-2 justify-center">
-                            <a href="{% url 'core:delivery_detail' delivery.pk %}" class="text-blue-600 hover:text-blue-900" title="Voir">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <div class="p-8 text-center">
-            <i class="fas fa-truck text-5xl text-gray-300 mb-4"></i>
-            <p class="text-gray-600 text-lg">Aucun bon de livraison trouvé</p>
-            <a href="{% url 'core:delivery_create' %}" class="btn-success py-2 px-4 inline-block mt-4">
-                <i class="fas fa-truck"></i> Créer un nouveau bon
+    <!-- Barre de recherche -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <form method="get" class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ request.GET.search }}"
+                    placeholder="Rechercher par numéro ou client..."
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                >
+            </div>
+            <button type="submit" class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-medium transition">
+                Rechercher
+            </button>
+            {% if request.GET.search %}
+            <a href="{% url 'delivery:list' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium transition">
+                Réinitialiser
             </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Total BL</p>
+                    <p class="text-3xl font-bold text-gray-800 mt-2">{{ deliveries|length }}</p>
+                </div>
+                <div class="bg-orange-100 p-3 rounded-full">
+                    <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
+                    </svg>
+                </div>
+            </div>
         </div>
-    {% endif %}
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">En préparation</p>
+                    <p class="text-3xl font-bold text-yellow-600 mt-2">0</p>
+                </div>
+                <div class="bg-yellow-100 p-3 rounded-full">
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">En transit</p>
+                    <p class="text-3xl font-bold text-blue-600 mt-2">0</p>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Livrés</p>
+                    <p class="text-3xl font-bold text-green-600 mt-2">{{ deliveries|length }}</p>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table des bons de livraison -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        {% if deliveries %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            N° BL
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Client
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date livraison
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Livraison prévue
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Livraison réelle
+                        </th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Statut
+                        </th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for delivery in deliveries %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-orange-600">
+                                <a href="{% url 'delivery:detail' delivery.pk %}" class="hover:text-orange-800">
+                                    {{ delivery.delivery_number }}
+                                </a>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center">
+                                    <span class="text-orange-600 font-bold">{{ delivery.client.name|first|upper }}</span>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ delivery.client.name }}</div>
+                                    <div class="text-sm text-gray-500">{{ delivery.client.company|default:"—" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ delivery.delivery_date|date:"d/m/Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {% if delivery.expected_delivery %}
+                            {{ delivery.expected_delivery|date:"d/m/Y" }}
+                            {% else %}
+                            <span class="text-gray-400">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {% if delivery.actual_delivery %}
+                            <span class="text-green-600 font-medium">{{ delivery.actual_delivery|date:"d/m/Y" }}</span>
+                            {% else %}
+                            <span class="text-yellow-600">En attente</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            {% if delivery.actual_delivery %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Livré
+                            </span>
+                            {% else %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                En cours
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="{% url 'delivery:detail' delivery.pk %}" class="text-blue-600 hover:text-blue-900 mr-3">Voir</a>
+                            <a href="{% url 'delivery:edit' delivery.pk %}" class="text-green-600 hover:text-green-900 mr-3">Modifier</a>
+                            <a href="{% url 'delivery:delete' delivery.pk %}" class="text-red-600 hover:text-red-900">Supprimer</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Affichage de <span class="font-medium">{{ page_obj.start_index }}</span> à
+                        <span class="font-medium">{{ page_obj.end_index }}</span> sur
+                        <span class="font-medium">{{ page_obj.paginator.count }}</span> résultats
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Aucun bon de livraison</h3>
+            <p class="mt-1 text-sm text-gray-500">Commencez par créer un nouveau bon de livraison.</p>
+            <div class="mt-6">
+                <a href="{% url 'delivery:create' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">
+                    Créer un bon de livraison
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

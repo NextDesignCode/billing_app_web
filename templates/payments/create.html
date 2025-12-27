@@ -1,62 +1,283 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Créer Paiement - Facturation{% endblock %}
+{% block title %}Enregistrer un Paiement - {{ site_name }}{% endblock %}
 
 {% block content %}
-<div class="mb-8">
-    <h1 class="text-3xl font-bold text-gray-900">💳 Créer un Nouveau Paiement</h1>
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <!-- Navigation -->
+    <div class="mb-6">
+        <a href="{% url 'payments:list' %}" class="text-blue-600 hover:text-blue-800 flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Retour aux paiements
+        </a>
+    </div>
+
+    <!-- En-tête -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+            <div class="bg-green-100 p-3 rounded-full">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+            </div>
+            Enregistrer un Paiement
+        </h1>
+        <p class="text-gray-600 mt-2">Enregistrez le paiement d'une facture</p>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-green-50 px-6 py-4 border-b border-green-100">
+            <h2 class="text-lg font-bold text-gray-800">Informations du Paiement</h2>
+        </div>
+
+        <form method="post" class="p-6">
+            {% csrf_token %}
+
+            <!-- Messages d'erreur -->
+            {% if form.errors %}
+            <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">Des erreurs sont survenues :</h3>
+                        <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                <li>{{ field }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="space-y-6">
+                <!-- Facture -->
+                <div>
+                    <label for="{{ form.invoice.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Facture concernée <span class="text-red-600">*</span>
+                    </label>
+                    <select
+                        name="{{ form.invoice.name }}"
+                        id="{{ form.invoice.id_for_label }}"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        required
+                        onchange="updateInvoiceInfo(this)"
+                    >
+                        <option value="">Sélectionnez une facture...</option>
+                        {% for invoice in invoices %}
+                        <option value="{{ invoice.pk }}"
+                                data-total="{{ invoice.total }}"
+                                data-paid="{{ invoice.paid_amount }}"
+                                data-client="{{ invoice.client.name }}"
+                                {% if form.invoice.value == invoice.pk %}selected{% endif %}>
+                            {{ invoice.invoice_number }} - {{ invoice.client.name }} - {{ invoice.total|floatformat:2 }}€
+                            {% if invoice.status == 'partial' %}(Partiellement payée){% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% if form.invoice.help_text %}
+                    <p class="mt-1 text-sm text-gray-500">{{ form.invoice.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Info facture sélectionnée -->
+                <div id="invoice-info" class="hidden bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">Client</p>
+                            <p id="invoice-client" class="text-base font-bold text-gray-900">—</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">Total facture</p>
+                            <p id="invoice-total" class="text-base font-bold text-gray-900">0.00 €</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">Déjà payé</p>
+                            <p id="invoice-paid" class="text-base font-bold text-green-600">0.00 €</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">Reste à payer</p>
+                            <p id="invoice-remaining" class="text-base font-bold text-red-600">0.00 €</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Montant -->
+                <div>
+                    <label for="{{ form.amount.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Montant du paiement <span class="text-red-600">*</span>
+                    </label>
+                    <div class="relative">
+                        {{ form.amount }}
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <span class="text-gray-500">€</span>
+                        </div>
+                    </div>
+                    {% if form.amount.help_text %}
+                    <p class="mt-1 text-sm text-gray-500">{{ form.amount.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Date de paiement -->
+                <div>
+                    <label for="{{ form.payment_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Date de paiement <span class="text-red-600">*</span>
+                    </label>
+                    {{ form.payment_date }}
+                    {% if form.payment_date.help_text %}
+                    <p class="mt-1 text-sm text-gray-500">{{ form.payment_date.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Méthode de paiement -->
+                <div>
+                    <label for="{{ form.method.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Méthode de paiement <span class="text-red-600">*</span>
+                    </label>
+                    {{ form.method }}
+                    {% if form.method.help_text %}
+                    <p class="mt-1 text-sm text-gray-500">{{ form.method.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Référence -->
+                <div>
+                    <label for="{{ form.reference.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Référence / N° de transaction
+                    </label>
+                    {{ form.reference }}
+                    <p class="mt-1 text-sm text-gray-500">Numéro de chèque, référence de virement, etc.</p>
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Notes
+                    </label>
+                    {{ form.notes }}
+                    {% if form.notes.help_text %}
+                    <p class="mt-1 text-sm text-gray-500">{{ form.notes.help_text }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Info box -->
+            <div class="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            <strong>Information :</strong> Le statut de la facture sera automatiquement mis à jour en fonction du montant payé.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Boutons -->
+            <div class="mt-8 flex flex-col sm:flex-row gap-3">
+                <button
+                    type="submit"
+                    class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Enregistrer le Paiement
+                </button>
+                <a
+                    href="{% url 'payments:list' %}"
+                    class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium transition text-center"
+                >
+                    Annuler
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Guide rapide -->
+    <div class="mt-6 bg-gray-50 rounded-lg p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Guide rapide
+        </h3>
+        <ul class="space-y-2 text-sm text-gray-700">
+            <li class="flex items-start gap-2">
+                <svg class="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>Sélectionnez la facture pour laquelle vous enregistrez un paiement</span>
+            </li>
+            <li class="flex items-start gap-2">
+                <svg class="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>Le montant peut être partiel ou total selon le paiement reçu</span>
+            </li>
+            <li class="flex items-start gap-2">
+                <svg class="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>Indiquez la méthode de paiement et la référence pour une meilleure traçabilité</span>
+            </li>
+            <li class="flex items-start gap-2">
+                <svg class="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>Le statut de la facture sera automatiquement mis à jour après l'enregistrement</span>
+            </li>
+        </ul>
+    </div>
 </div>
 
-<div class="bg-white rounded-lg shadow-lg p-8 max-w-2xl">
-    <form method="post" class="space-y-6">
-        {% csrf_token %}
+<script>
+function updateInvoiceInfo(select) {
+    const option = select.options[select.selectedIndex];
+    const infoDiv = document.getElementById('invoice-info');
 
-        <div>
-            <label for="invoice" class="block text-sm font-semibold text-gray-700 mb-2">Facture *</label>
-            <select name="invoice" id="invoice" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="">-- Sélectionnez une facture --</option>
-                {% for invoice in invoices %}
-                    <option value="{{ invoice.pk }}">{{ invoice.number }} - {{ invoice.client.name }} ({{ invoice.total_amount|floatformat:2 }}€)</option>
-                {% endfor %}
-            </select>
-        </div>
+    if (option.value) {
+        const total = parseFloat(option.dataset.total);
+        const paid = parseFloat(option.dataset.paid);
+        const remaining = total - paid;
+        const client = option.dataset.client;
 
-        <div>
-            <label for="amount" class="block text-sm font-semibold text-gray-700 mb-2">Montant *</label>
-            <input type="number" name="amount" id="amount" required step="0.01" min="0" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-        </div>
+        document.getElementById('invoice-client').textContent = client;
+        document.getElementById('invoice-total').textContent = total.toFixed(2) + ' €';
+        document.getElementById('invoice-paid').textContent = paid.toFixed(2) + ' €';
+        document.getElementById('invoice-remaining').textContent = remaining.toFixed(2) + ' €';
 
-        <div>
-            <label for="payment_method" class="block text-sm font-semibold text-gray-700 mb-2">Méthode de Paiement *</label>
-            <select name="payment_method" id="payment_method" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="">-- Sélectionnez une méthode --</option>
-                <option value="Espèces">💵 Espèces</option>
-                <option value="Chèque">✍️ Chèque</option>
-                <option value="Virement">🏦 Virement</option>
-                <option value="Carte Bancaire">💳 Carte Bancaire</option>
-                <option value="Prélèvement">📋 Prélèvement</option>
-                <option value="PayPal">🌐 PayPal</option>
-            </select>
-        </div>
+        // Pré-remplir le montant avec le reste à payer
+        document.getElementById('{{ form.amount.id_for_label }}').value = remaining.toFixed(2);
 
-        <div>
-            <label for="payment_date" class="block text-sm font-semibold text-gray-700 mb-2">Date de Paiement</label>
-            <input type="date" name="payment_date" id="payment_date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-        </div>
+        infoDiv.classList.remove('hidden');
+    } else {
+        infoDiv.classList.add('hidden');
+        document.getElementById('{{ form.amount.id_for_label }}').value = '';
+    }
+}
 
-        <div>
-            <label for="reference_number" class="block text-sm font-semibold text-gray-700 mb-2">Numéro de Référence</label>
-            <input type="text" name="reference_number" id="reference_number" placeholder="Ex: CHQ123456" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-        </div>
-
-        <div class="flex gap-4 pt-6">
-            <button type="submit" class="btn-success py-3 px-6 text-lg">
-                <i class="fas fa-save"></i> Créer le Paiement
-            </button>
-            <a href="{% url 'core:payment_list' %}" class="btn-outline py-3 px-6 text-lg">
-                <i class="fas fa-times"></i> Annuler
-            </a>
-        </div>
-    </form>
-</div>
+// Auto-remplir la date du jour
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('{{ form.payment_date.id_for_label }}');
+    if (dateInput && !dateInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    }
+});
+</script>
 {% endblock %}
